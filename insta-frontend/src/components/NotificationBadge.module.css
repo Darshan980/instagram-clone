@@ -1,0 +1,82 @@
+/* components/NotificationBadge.module.css */
+
+.badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ff3040;
+  color: white;
+  border-radius: 50%;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 0 4px;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  animation: pulse 2s infinite;
+}
+
+.badge:empty {
+  display: none;
+}
+
+/* Pulse animation for new notifications */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Different sizes */
+.badge.small {
+  min-width: 14px;
+  height: 14px;
+  font-size: 9px;
+  top: -6px;
+  right: -6px;
+}
+
+.badge.large {
+  min-width: 22px;
+  height: 22px;
+  font-size: 12px;
+  top: -10px;
+  right: -10px;
+}
+
+/* Different colors */
+.badge.blue {
+  background: #1877f2;
+}
+
+.badge.green {
+  background: #42b883;
+}
+
+.badge.orange {
+  background: #ff6b35;
+}
+
+/* Disable animation */
+.badge.noAnimation {
+  animation: none;
+}
+
+/* For dark theme */
+@media (prefers-color-scheme: dark) {
+  .badge {
+    border-color: #1a1a1a;
+  }
+}

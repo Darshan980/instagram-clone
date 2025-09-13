@@ -1,0 +1,810 @@
+/* Profile Page Styles */
+
+.container {
+  min-height: 100vh;
+  background: #fafafa;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Header */
+.header {
+  background: white;
+  border-bottom: 1px solid #dbdbdb;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+}
+
+.headerContent {
+  max-width: 975px;
+  margin: 0 auto;
+  padding: 0 20px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  font-size: 29px;
+  font-weight: bold;
+  color: #262626;
+  text-decoration: none;
+  font-family: 'Billabong', cursive;
+}
+
+.headerActions {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.createButton,
+.feedButton {
+  padding: 8px 16px;
+  border: 1px solid #dbdbdb;
+  border-radius: 4px;
+  background: white;
+  color: #262626;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.createButton:hover,
+.feedButton:hover {
+  background: #fafafa;
+}
+
+/* Profile Section */
+.profileSection {
+  max-width: 935px;
+  margin: 0 auto;
+  padding: 30px 20px;
+  margin-top: 54px;
+}
+
+.profileHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 77px;
+  margin-bottom: 44px;
+}
+
+.profilePictureContainer {
+  flex-shrink: 0;
+}
+
+.profilePicture {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #dbdbdb;
+}
+
+.profileInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.profileTop {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.username {
+  font-size: 28px;
+  font-weight: 300;
+  line-height: 32px;
+  margin: 0;
+  color: #262626;
+}
+
+.profileActions {
+  display: flex;
+  gap: 8px;
+}
+
+.editButton,
+.followButton {
+  padding: 5px 9px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid #dbdbdb;
+  border-radius: 4px;
+  background: white;
+  color: #262626;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 90px;
+}
+
+.editButton:hover {
+  background: #fafafa;
+}
+
+.followButton {
+  background: #0095f6;
+  color: white;
+  border-color: #0095f6;
+}
+
+.following {
+  background: white !important;
+  color: #262626 !important;
+  border-color: #dbdbdb !important;
+}
+
+.followButton:hover {
+  background: #1877f2;
+}
+
+.following:hover {
+  background: #fafafa !important;
+}
+
+.followButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Stats */
+.stats {
+  display: flex;
+  gap: 40px;
+  margin-bottom: 20px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.statNumber {
+  font-size: 18px;
+  font-weight: 600;
+  color: #262626;
+  line-height: 20px;
+}
+
+.statLabel {
+  font-size: 16px;
+  color: #262626;
+  margin-top: 2px;
+}
+
+/* Bio */
+.bio {
+  max-width: 350px;
+}
+
+.fullName {
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 4px;
+}
+
+.bioText {
+  font-size: 16px;
+  color: #262626;
+  line-height: 24px;
+  white-space: pre-wrap;
+}
+
+/* Posts Section */
+.postsSection {
+  max-width: 935px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.postsHeader {
+  border-top: 1px solid #dbdbdb;
+  display: flex;
+  justify-content: center;
+}
+
+.postsTab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 0;
+  color: #262626;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  border-top: 1px solid #262626;
+  margin-top: -1px;
+}
+
+.postsIcon {
+  font-size: 12px;
+}
+
+/* Posts Grid */
+.postsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  margin-top: 20px;
+}
+
+.postItem {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.postImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.2s;
+}
+
+.postItem:hover .postImage {
+  transform: scale(1.03);
+}
+
+.postOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.postItem:hover .postOverlay {
+  opacity: 1;
+}
+
+.postStats {
+  display: flex;
+  gap: 20px;
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.postStat {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Loading and Error States */
+.loading,
+.postsLoading {
+  text-align: center;
+  padding: 40px 20px;
+  color: #8e8e8e;
+  font-size: 16px;
+}
+
+.error {
+  text-align: center;
+  padding: 40px 20px;
+  color: #ed4956;
+  font-size: 16px;
+}
+
+.backLink {
+  display: inline-block;
+  margin-top: 20px;
+  color: #0095f6;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.noPosts {
+  text-align: center;
+  padding: 60px 20px;
+  color: #8e8e8e;
+}
+
+.noPostsIcon {
+  font-size: 72px;
+  margin-bottom: 20px;
+}
+
+.noPosts h3 {
+  font-size: 28px;
+  font-weight: 300;
+  color: #262626;
+  margin: 0 0 10px 0;
+}
+
+.noPosts p {
+  font-size: 16px;
+  margin: 0;
+}
+
+.errorMessage {
+  position: fixed;
+  top: 70px;
+  right: 20px;
+  background: #ed4956;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  max-width: 300px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.dismissError {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal {
+  background: white;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid #dbdbdb;
+}
+
+.modalHeader h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #262626;
+  margin: 0;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #8e8e8e;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.closeButton:hover {
+  background: #f5f5f5;
+}
+
+.modalForm {
+  padding: 24px;
+}
+
+.formGroup {
+  margin-bottom: 20px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #dbdbdb;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #262626;
+  background: #fafafa;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.input:focus,
+.textarea:focus {
+  outline: none;
+  border-color: #0095f6;
+  background: white;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 60px;
+  font-family: inherit;
+}
+
+.charCount {
+  text-align: right;
+  font-size: 12px;
+  color: #8e8e8e;
+  margin-top: 4px;
+}
+
+.profilePictureUpload {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.currentPicture {
+  flex-shrink: 0;
+}
+
+.previewImage {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #dbdbdb;
+}
+
+.fileInput {
+  display: none;
+}
+
+.fileInputLabel {
+  padding: 6px 12px;
+  background: #0095f6;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.2s;
+  border: none;
+}
+
+.fileInputLabel:hover {
+  background: #1877f2;
+}
+
+.modalActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid #efefef;
+}
+
+.cancelButton,
+.saveButton {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 80px;
+}
+
+.cancelButton {
+  background: white;
+  border: 1px solid #dbdbdb;
+  color: #262626;
+}
+
+.cancelButton:hover {
+  background: #fafafa;
+}
+
+.saveButton {
+  background: #0095f6;
+  border: 1px solid #0095f6;
+  color: white;
+}
+
+.saveButton:hover {
+  background: #1877f2;
+}
+
+.saveButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .headerContent {
+    padding: 0 16px;
+  }
+  
+  .profileSection {
+    padding: 20px 16px;
+  }
+  
+  .profileHeader {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 32px;
+  }
+  
+  .profileInfo {
+    width: 100%;
+  }
+  
+  .profileTop {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .username {
+    font-size: 24px;
+  }
+  
+  .stats {
+    justify-content: center;
+    gap: 32px;
+  }
+  
+  .postsGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+  }
+  
+  .postsSection {
+    padding: 0 16px;
+  }
+  
+  .modal {
+    margin: 16px;
+    max-height: calc(100vh - 32px);
+  }
+  
+  .modalForm {
+    padding: 20px;
+  }
+  
+  .profilePictureUpload {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+  
+  .modalActions {
+    flex-direction: column-reverse;
+  }
+  
+  .cancelButton,
+  .saveButton {
+    width: 100%;
+    padding: 12px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .profilePicture {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .username {
+    font-size: 20px;
+  }
+  
+  .stats {
+    gap: 24px;
+  }
+  
+  .statNumber {
+    font-size: 16px;
+  }
+  
+  .statLabel {
+    font-size: 14px;
+  }
+  
+  .postsGrid {
+    gap: 2px;
+  }
+  
+  .noPostsIcon {
+    font-size: 48px;
+  }
+  
+  .noPosts h3 {
+    font-size: 20px;
+  }
+  
+  .noPosts p {
+    font-size: 14px;
+  }
+  
+  .errorMessage {
+    top: 60px;
+    right: 16px;
+    left: 16px;
+    max-width: none;
+  }
+}
+
+/* Loading Animation */
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+.loading,
+.postsLoading {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Hover Effects */
+.followButton,
+.editButton {
+  position: relative;
+  overflow: hidden;
+}
+
+.followButton::before,
+.editButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.followButton:hover::before,
+.editButton:hover::before {
+  left: 100%;
+}
+
+/* Error State Styling */
+.error {
+  background: #fef7f7;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  margin: 20px 0;
+}
+
+/* Success State (for future use) */
+.success {
+  background: #f7fff7;
+  border: 1px solid #c6f5cb;
+  color: #155724;
+  border-radius: 4px;
+  padding: 12px;
+  margin: 20px 0;
+  text-align: center;
+}
+
+/* Profile Picture Upload Enhancements */
+.fileInputLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fileInputLabel::before {
+  content: '📷';
+  font-size: 16px;
+}
+
+/* Accessibility Improvements */
+.followButton:focus,
+.editButton:focus,
+.input:focus,
+.textarea:focus,
+.fileInputLabel:focus {
+  outline: 2px solid #0095f6;
+  outline-offset: 2px;
+}
+
+/* Dark mode support (optional) */
+@media (prefers-color-scheme: dark) {
+  .container {
+    background: #000;
+    color: #fff;
+  }
+  
+  .header {
+    background: #000;
+    border-bottom-color: #262626;
+  }
+  
+  .logo,
+  .username,
+  .fullName,
+  .bioText,
+  .statNumber,
+  .statLabel {
+    color: #fff;
+  }
+  
+  .createButton,
+  .feedButton,
+  .editButton {
+    background: #000;
+    color: #fff;
+    border-color: #262626;
+  }
+  
+  .createButton:hover,
+  .feedButton:hover,
+  .editButton:hover {
+    background: #262626;
+  }
+  
+  .modal {
+    background: #262626;
+  }
+  
+  .input,
+  .textarea {
+    background: #000;
+    border-color: #363636;
+    color: #fff;
+  }
+  
+  .input:focus,
+  .textarea:focus {
+    background: #000;
+    border-color: #0095f6;
+  }
+}
