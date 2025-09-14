@@ -28,7 +28,7 @@ const StoriesBar = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/stories', {
+      const response = await fetch('http://localhost:10000/api/stories', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
