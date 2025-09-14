@@ -165,7 +165,7 @@ export default function Signup() {
       </div>
 
       <div className={styles.footer}>
-        <p>Instagram Clone - Demo App</p>
+        <p>InstaApp clone</p>
       </div>
     </div>
   );
