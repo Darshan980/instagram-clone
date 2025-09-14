@@ -57,7 +57,7 @@ const StoriesBar = () => {
       if (token) {
         // Mark all stories in this group as viewed
         for (const story of storyGroup.stories) {
-          await fetch(`http://localhost:5000/api/stories/${story._id}/view`, {
+          await fetch(`http://localhost:10000/api/stories/${story._id}/view`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${token}`,
