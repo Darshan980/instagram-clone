@@ -272,9 +272,9 @@ export default function ProfilePage() {
         }));
       }
 
-    } catch (error) {
-      console.error('Profile data fetch exception:', error);
-      setError('Failed to load profile data: ' + error.message);
+    } catch (fetchError) {
+      console.error('Profile data fetch exception:', fetchError);
+      setError('Failed to load profile data: ' + fetchError.message);
       setPosts([]);
     } finally {
       setLoading(false);
@@ -336,8 +336,8 @@ export default function ProfilePage() {
       } else {
         console.error('Force refresh failed:', profileResult.error);
       }
-    } catch (error) {
-      console.error('Force refresh exception:', error);
+    } catch (refreshError) {
+      console.error('Force refresh exception:', refreshError);
     } finally {
       console.log('=== FORCE REFRESH PROFILE END ===');
     }
@@ -384,9 +384,9 @@ export default function ProfilePage() {
         console.error('Follow toggle error:', result.error);
         setError(result.error || 'Failed to update follow status');
       }
-    } catch (error) {
-      console.error('Follow toggle exception:', error);
-      setError('Failed to update follow status: ' + error.message);
+    } catch (followError) {
+      console.error('Follow toggle exception:', followError);
+      setError('Failed to update follow status: ' + followError.message);
     } finally {
       setFollowLoading(false);
     }
@@ -643,7 +643,7 @@ export default function ProfilePage() {
               {user.isOwnProfile ? (
                 <p>Share your first photo to get started!</p>
               ) : (
-                <p>When {user.username} shares photos, you'll see them here.</p>
+                <p>{"When " + user.username + " shares photos, you'll see them here."}</p>
               )}
             </div>
           ) : (
@@ -831,9 +831,9 @@ function EditProfileModal({ user, onClose, onUpdate }) {
         setError(result.error || 'Failed to update profile');
         console.error('Edit modal profile update error:', result.error);
       }
-    } catch (error) {
-      console.error('Edit modal profile update exception:', error);
-      setError('Failed to update profile: ' + error.message);
+    } catch (updateError) {
+      console.error('Edit modal profile update exception:', updateError);
+      setError('Failed to update profile: ' + updateError.message);
     } finally {
       setLoading(false);
       console.log('=== EDIT MODAL SUBMIT END ===');
