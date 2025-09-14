@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { 
   isTokenValid, 
   getNotifications, 
@@ -73,8 +72,8 @@ export default function Notifications() {
       } else {
         setError(result.error);
       }
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
+    } catch (fetchError) {
+      console.error('Error fetching notifications:', fetchError);
       setError('Failed to load notifications');
     } finally {
       setLoading(false);
@@ -95,8 +94,8 @@ export default function Notifications() {
         );
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
+    } catch (markError) {
+      console.error('Error marking notification as read:', markError);
     }
   };
 
@@ -109,8 +108,8 @@ export default function Notifications() {
         );
         setUnreadCount(0);
       }
-    } catch (error) {
-      console.error('Error marking all notifications as read:', error);
+    } catch (markAllError) {
+      console.error('Error marking all notifications as read:', markAllError);
     }
   };
 
@@ -125,8 +124,8 @@ export default function Notifications() {
           setUnreadCount(prev => Math.max(0, prev - 1));
         }
       }
-    } catch (error) {
-      console.error('Error deleting notification:', error);
+    } catch (deleteError) {
+      console.error('Error deleting notification:', deleteError);
     }
   };
 
@@ -226,7 +225,7 @@ export default function Notifications() {
             <div className={styles.emptyState}>
               <div className={styles.emptyIcon}>🔔</div>
               <h3>No notifications yet</h3>
-              <p>When someone likes your posts, comments, or follows you, you'll see it here.</p>
+              <p>{"When someone likes your posts, comments, or follows you, you'll see it here."}</p>
             </div>
           ) : (
             <>
