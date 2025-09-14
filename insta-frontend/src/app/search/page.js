@@ -81,8 +81,8 @@ export default function SearchPage() {
           setSearchMeta({});
           setHasSearched(true);
         }
-      } catch (error) {
-        console.error('Frontend: Search exception:', error);
+      } catch (searchError) {
+        console.error('Frontend: Search exception:', searchError);
         setError('Failed to search users. Please try again.');
         setSearchResults([]);
         setSearchMeta({});
@@ -156,7 +156,7 @@ export default function SearchPage() {
               backgroundColor: '#f5f5f5',
               borderRadius: '4px'
             }}>
-              Debug: Query="{searchQuery}" | Results={resultsCount} | HasSearched={hasSearched.toString()} | Loading={loading.toString()} | SearchType={searchMeta.searchType || 'none'}
+              Debug: Query={`"${searchQuery}"`} | Results={resultsCount} | HasSearched={hasSearched.toString()} | Loading={loading.toString()} | SearchType={searchMeta.searchType || 'none'}
             </div>
           )}
         </div>
@@ -185,7 +185,7 @@ export default function SearchPage() {
                 </h3>
                 {searchMeta.searchType === 'suggestions' && (
                   <p style={{ fontSize: '14px', color: '#666', margin: '5px 0 0 0' }}>
-                    Showing suggestions for "{searchQuery}"
+                    {`Showing suggestions for "${searchQuery}"`}
                   </p>
                 )}
               </div>
