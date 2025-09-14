@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -52,7 +51,8 @@ export default function Login() {
       } else {
         setError(result.error);
       }
-    } catch (error) {
+    } catch (loginError) {
+      console.error('Login error:', loginError);
       setError('An unexpected error occurred');
     } finally {
       setLoading(false);
@@ -73,7 +73,7 @@ export default function Login() {
               {error}
             </div>
           )}
-
+          
           <div className={styles.inputGroup}>
             <input
               type="email"
@@ -120,7 +120,7 @@ export default function Login() {
 
       <div className={styles.signupBox}>
         <p>
-          Don't have an account?{' '}
+          {"Don't have an account?"}{' '}
           <Link href="/signup" className={styles.signupLink}>
             Sign up
           </Link>
