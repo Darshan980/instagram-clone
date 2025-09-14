@@ -156,24 +156,24 @@ export default function SettingsPage() {
       } else {
         throw new Error(response.error || 'Failed to load user data');
       }
-    } catch (error) {
-      console.error('❌ Load user data error:', error);
+    } catch (loadError) {
+      console.error('❌ Load user data error:', loadError);
       
       // Check if it's an authentication error
-      if (error.message.includes('Authentication failed') || 
-          error.message.includes('401') ||
-          error.message.includes('Unauthorized')) {
+      if (loadError.message.includes('Authentication failed') || 
+          loadError.message.includes('401') ||
+          loadError.message.includes('Unauthorized')) {
         console.log('🔐 Authentication error detected, clearing tokens');
         clearAllTokens();
         showMessage('Session expired. Please log in again.', true);
         setTimeout(() => {
           window.location.href = '/login';
         }, 2000);
-      } else if (error.message.includes('Network error') || 
-                 error.message.includes('fetch')) {
+      } else if (loadError.message.includes('Network error') || 
+                 loadError.message.includes('fetch')) {
         showMessage('Connection error. Please check your internet and try again.', true);
       } else {
-        showMessage(`Failed to load user data: ${error.message}`, true);
+        showMessage(`Failed to load user data: ${loadError.message}`, true);
       }
       
     } finally {
@@ -250,9 +250,9 @@ export default function SettingsPage() {
       } else {
         throw new Error(response.error || 'Update failed');
       }
-    } catch (error) {
-      console.error('❌ Account update error:', error);
-      showMessage(error.message, true);
+    } catch (updateError) {
+      console.error('❌ Account update error:', updateError);
+      showMessage(updateError.message, true);
     } finally {
       setLoading(false);
     }
@@ -272,9 +272,9 @@ export default function SettingsPage() {
       } else {
         throw new Error(response.error || 'Update failed');
       }
-    } catch (error) {
-      console.error('❌ Privacy update error:', error);
-      showMessage(error.message, true);
+    } catch (privacyError) {
+      console.error('❌ Privacy update error:', privacyError);
+      showMessage(privacyError.message, true);
     } finally {
       setLoading(false);
     }
@@ -294,9 +294,9 @@ export default function SettingsPage() {
       } else {
         throw new Error(response.error || 'Update failed');
       }
-    } catch (error) {
-      console.error('❌ Notification update error:', error);
-      showMessage(error.message, true);
+    } catch (notificationError) {
+      console.error('❌ Notification update error:', notificationError);
+      showMessage(notificationError.message, true);
     } finally {
       setLoading(false);
     }
@@ -337,9 +337,9 @@ export default function SettingsPage() {
       } else {
         throw new Error(response.error || 'Password change failed');
       }
-    } catch (error) {
-      console.error('❌ Password change error:', error);
-      showMessage(error.message, true);
+    } catch (passwordError) {
+      console.error('❌ Password change error:', passwordError);
+      showMessage(passwordError.message, true);
     } finally {
       setLoading(false);
     }
@@ -368,9 +368,9 @@ export default function SettingsPage() {
       } else {
         throw new Error(response.error || 'Deactivation failed');
       }
-    } catch (error) {
-      console.error('❌ Deactivation error:', error);
-      showMessage(error.message, true);
+    } catch (deactivateError) {
+      console.error('❌ Deactivation error:', deactivateError);
+      showMessage(deactivateError.message, true);
       setLoading(false);
     }
   };
@@ -393,7 +393,7 @@ export default function SettingsPage() {
       <div className="error-container">
         <div className="error-content">
           <h2 className="error-title">Unable to Load Settings</h2>
-          <p className="error-text">We couldn't load your account settings. This might be due to a connection issue or expired session.</p>
+          <p className="error-text">{"We couldn't load your account settings. This might be due to a connection issue or expired session."}</p>
           {message && <p className="error-message">{message}</p>}
           <div className="error-actions">
             <button 
@@ -666,7 +666,7 @@ export default function SettingsPage() {
                   <div className="setting-item">
                     <div className="setting-info">
                       <h3 className="setting-title">Messages from Strangers</h3>
-                      <p className="setting-description">Allow direct messages from people you don't follow</p>
+                      <p className="setting-description">{"Allow direct messages from people you don't follow"}</p>
                     </div>
                     <label className="toggle-switch">
                       <input
