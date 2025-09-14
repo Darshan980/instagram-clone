@@ -1267,7 +1267,7 @@ export default function Dashboard() {
               <Link href="/terms">Terms</Link>
             </div>
             <div className={styles.copyright}>
-              <span>© 2024 Instagram from Meta</span>
+              <span>© 2024 InstaApp clone</span>
             </div>
           </div>
         </div>
