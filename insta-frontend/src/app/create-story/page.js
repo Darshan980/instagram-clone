@@ -100,7 +100,7 @@ export default function CreateStory() {
 
       if (response.ok) {
         // Redirect to feed after successful story creation
-        router.push('/feed');
+        router.push('/dashboard');
       } else {
         setError(result.message || 'Failed to create story');
       }
