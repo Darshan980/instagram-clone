@@ -160,10 +160,10 @@ const CreateReel = () => {
         }));
       }
 
-      console.log('Creating reel with API URL:', `${API_BASE_URL}/api/reels`);
+      console.log('Creating reel with API URL:', `${API_BASE_URL}/reels`);
 
       // Make API call to backend - FIXED: Use correct endpoint
-      const response = await fetch(`${API_BASE_URL}/api/reels`, {
+      const response = await fetch(`${API_BASE_URL}/reels`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${authToken}`
