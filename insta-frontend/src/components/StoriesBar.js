@@ -28,7 +28,7 @@ const StoriesBar = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:10000/api/stories', {
+      const response = await fetch('https://instagram-clone-0t5v.onrender.com/api/stories', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -82,7 +82,7 @@ const StoriesBar = () => {
           // Make sure each story has the user data
           story.userId = story.userId || storyGroup.user;
           
-          await fetch(`http://localhost:10000/api/stories/${story._id}/view`, {
+          await fetch(`https://instagram-clone-0t5v.onrender.com/api/stories/${story._id}/view`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${token}`,
