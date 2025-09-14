@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Instagram Clone",
-  description: "A full-stack Instagram clone built with Next.js and Express",
+  title: "InstaApp  Clone",
+  description: "A full-stack InstaApp Clone clone built with Next.js and Express",
 };
 
 export default function RootLayout({
