@@ -82,7 +82,7 @@ const StoriesBar = () => {
           // Make sure each story has the user data
           story.userId = story.userId || storyGroup.user;
           
-          await fetch(`http://localhost:5000/api/stories/${story._id}/view`, {
+          await fetch(`http://localhost:10000/api/stories/${story._id}/view`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${token}`,
