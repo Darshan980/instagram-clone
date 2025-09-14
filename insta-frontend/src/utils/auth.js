@@ -1,7 +1,7 @@
 // Enhanced Frontend API Utility Functions with Fixed Suggestions and Error Handling
 // Complete authentication, posts, users, notifications, and reels system
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://instagram-clone-0t5v.onrender.com/api';
 
 // ============================
 // TOKEN MANAGEMENT
