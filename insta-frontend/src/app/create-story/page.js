@@ -88,7 +88,7 @@ export default function CreateStory() {
 
       const token = localStorage.getItem('instagram_token');
       
-      const response = await fetch('http://localhost:10000/api/stories', {
+      const response = await fetch('https://instagram-clone-0t5v.onrender.com/api/stories', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
