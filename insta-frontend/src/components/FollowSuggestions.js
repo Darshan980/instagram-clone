@@ -4,7 +4,7 @@ import { User, UserPlus, X, RefreshCw, Users, Search } from 'lucide-react';
 import styles from './FollowSuggestions.module.css';
 
 // API configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000/api';
 
 const getToken = () => {
   if (typeof window !== 'undefined') {
