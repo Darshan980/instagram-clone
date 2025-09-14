@@ -128,7 +128,7 @@ export default function Login() {
       </div>
 
       <div className={styles.footer}>
-        <p>Instagram Clone - Demo App</p>
+        <p>InstaApp Clone - Demo App</p>
       </div>
     </div>
   );
