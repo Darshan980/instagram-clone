@@ -186,7 +186,7 @@ export default function ExplorePage() {
 
               {!hasMore && posts.length > 0 && (
                 <div className={styles.endMessage}>
-                  <p>You've seen all the trending posts! 🎉</p>
+                  <p>{"You've seen all the trending posts! 🎉"}</p>
                   <Link href="/dashboard" className={styles.backToFeedButton}>
                     Back to Home
                   </Link>
