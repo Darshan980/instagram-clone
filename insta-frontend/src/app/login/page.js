@@ -63,7 +63,7 @@ export default function Login() {
     <div className={styles.container}>
       <div className={styles.loginBox}>
         <div className={styles.header}>
-          <h1 className={styles.logo}>Instagram</h1>
+          <h1 className={styles.logo}>InstaApp clone</h1>
           <p className={styles.subtitle}>Sign in to see photos and videos from your friends.</p>
         </div>
 
