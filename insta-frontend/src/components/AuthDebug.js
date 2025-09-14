@@ -39,7 +39,7 @@ const AuthDebug = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:10000/api/auth/me', {
+      const response = await fetch('https://instagram-clone-0t5v.onrender.com/api/auth/me', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
