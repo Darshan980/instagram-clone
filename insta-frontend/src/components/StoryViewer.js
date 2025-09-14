@@ -61,7 +61,7 @@ const YourStoriesComponent = () => {
 
       console.log('🔄 Fetching stories from backend...');
       
-      const response = await fetch('http://localhost:5000/api/stories', {
+      const response = await fetch('http://localhost:10000/api/stories', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
