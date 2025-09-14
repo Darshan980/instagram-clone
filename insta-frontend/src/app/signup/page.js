@@ -77,7 +77,7 @@ export default function Signup() {
     <div className={styles.container}>
       <div className={styles.signupBox}>
         <div className={styles.header}>
-          <h1 className={styles.logo}>Instagram</h1>
+          <h1 className={styles.logo}>InstaClone App</h1>
           <p className={styles.subtitle}>Sign up to see photos and videos from your friends.</p>
         </div>
 
