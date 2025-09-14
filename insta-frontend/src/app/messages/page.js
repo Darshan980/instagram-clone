@@ -45,7 +45,7 @@ export default function MessagesPage() {
   const fetchCurrentUser = async () => {
     try {
       const token = getToken();
-      const response = await axios.get('http://localhost:10000/api/auth/me', {
+      const response = await axios.get('https://instagram-clone-0t5v.onrender.com/api/auth/me', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setCurrentUser(response.data.user);
@@ -60,7 +60,7 @@ export default function MessagesPage() {
   const fetchConversations = async () => {
     try {
       const token = getToken();
-      const response = await axios.get('http://localhost:10000/api/conversations', {
+      const response = await axios.get('https://instagram-clone-0t5v.onrender.com/api/conversations', {
         headers: { Authorization: `Bearer ${token}` }
       });
       // FIXED: Ensure conversations is always an array
@@ -78,7 +78,7 @@ export default function MessagesPage() {
   const fetchMessages = async (userId) => {
     try {
       const token = getToken();
-      const response = await axios.get(`http://localhost:10000/api/messages/${userId}`, {
+      const response = await axios.get(`https://instagram-clone-0t5v.onrender.com/api/messages/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       // FIXED: Ensure messages is always an array
@@ -99,7 +99,7 @@ export default function MessagesPage() {
     setSendingMessage(true);
     try {
       const token = getToken();
-      const response = await axios.post('http://localhost:10000/api/messages', {
+      const response = await axios.post('https://instagram-clone-0t5v.onrender.com/api/messages', {
         receiverId: selectedConversation.id,
         text: newMessage.trim()
       }, {
@@ -138,7 +138,7 @@ export default function MessagesPage() {
       const token = getToken();
       console.log('🔍 Messages: Searching for users with query:', query.trim());
       
-      const response = await axios.get(`http://localhost:10000/api/users/search/${encodeURIComponent(query.trim())}`, {
+      const response = await axios.get(`https://instagram-clone-0t5v.onrender.com/api/users/search/${encodeURIComponent(query.trim())}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
