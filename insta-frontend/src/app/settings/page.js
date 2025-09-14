@@ -43,18 +43,6 @@ export default function SettingsPage() {
     confirmPassword: ''
   });
 
-  useEffect(() => {
-    // Ensure client-side only execution with proper delay
-    if (typeof window !== 'undefined') {
-      // Add a small delay to ensure DOM is ready
-      const timer = setTimeout(() => {
-        loadUserData();
-      }, 200);
-      
-      return () => clearTimeout(timer);
-    }
-  }, []);
-
   const loadUserData = async () => {
     try {
       console.log('🔄 Starting loadUserData...');
@@ -181,6 +169,18 @@ export default function SettingsPage() {
     }
   };
 
+  useEffect(() => {
+    // Ensure client-side only execution with proper delay
+    if (typeof window !== 'undefined') {
+      // Add a small delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        loadUserData();
+      }, 200);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [loadUserData]);
+
   const clearAllTokens = () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('instagram_token');
@@ -252,7 +252,8 @@ export default function SettingsPage() {
       }
     } catch (updateError) {
       console.error('❌ Account update error:', updateError);
-      showMessage(updateError.message, true);
+      const isError = true;
+      showMessage(updateError.message, isError);
     } finally {
       setLoading(false);
     }
@@ -393,7 +394,7 @@ export default function SettingsPage() {
       <div className="error-container">
         <div className="error-content">
           <h2 className="error-title">Unable to Load Settings</h2>
-          <p className="error-text">{"We couldn't load your account settings. This might be due to a connection issue or expired session."}</p>
+          <p className="error-text">We couldn&apos;t load your account settings. This might be due to a connection issue or expired session.</p>
           {message && <p className="error-message">{message}</p>}
           <div className="error-actions">
             <button 
@@ -632,7 +633,7 @@ export default function SettingsPage() {
                   <div className="setting-item">
                     <div className="setting-info">
                       <h3 className="setting-title">Show Online Status</h3>
-                      <p className="setting-description">Let others see when you're active</p>
+                      <p className="setting-description">Let others see when you&apos;re active</p>
                     </div>
                     <label className="toggle-switch">
                       <input
@@ -666,7 +667,7 @@ export default function SettingsPage() {
                   <div className="setting-item">
                     <div className="setting-info">
                       <h3 className="setting-title">Messages from Strangers</h3>
-                      <p className="setting-description">{"Allow direct messages from people you don't follow"}</p>
+                      <p className="setting-description">Allow direct messages from people you don&apos;t follow</p>
                     </div>
                     <label className="toggle-switch">
                       <input
