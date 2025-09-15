@@ -336,8 +336,9 @@ router.get('/:identifier', authenticateToken, async (req, res) => {
       query.username = identifier.toLowerCase();
     }
 
+    // FIXED: Explicitly exclude password (since select: false doesn't work with populate)
     const user = await User.findOne(query)
-      .select('-password -email') // Don't send sensitive data
+      .select('-password -email -emailVerificationToken -emailVerificationExpires -lockedUntil -loginAttempts')
       .populate('followers', 'username fullName profilePicture')
       .populate('following', 'username fullName profilePicture');
 
@@ -406,8 +407,8 @@ router.post('/follow/:userId', authenticateToken, async (req, res) => {
       });
     }
 
-    // Find the user to follow
-    const userToFollow = await User.findById(userIdToFollow);
+    // Find the user to follow - NO PASSWORD NEEDED
+    const userToFollow = await User.findById(userIdToFollow).select('username fullName');
     if (!userToFollow) {
       return res.status(404).json({
         success: false,
@@ -415,8 +416,8 @@ router.post('/follow/:userId', authenticateToken, async (req, res) => {
       });
     }
 
-    // Check if already following
-    const currentUser = await User.findById(currentUserId);
+    // Check if already following - NO PASSWORD NEEDED
+    const currentUser = await User.findById(currentUserId).select('following');
     if (currentUser.following.includes(userIdToFollow)) {
       return res.status(400).json({
         success: false,
@@ -522,8 +523,8 @@ router.post('/unfollow/:userId', authenticateToken, async (req, res) => {
       });
     }
 
-    // Find the user to unfollow
-    const userToUnfollow = await User.findById(userIdToUnfollow);
+    // Find the user to unfollow - NO PASSWORD NEEDED
+    const userToUnfollow = await User.findById(userIdToUnfollow).select('username fullName');
     if (!userToUnfollow) {
       return res.status(404).json({
         success: false,
@@ -531,8 +532,8 @@ router.post('/unfollow/:userId', authenticateToken, async (req, res) => {
       });
     }
 
-    // Check if actually following
-    const currentUser = await User.findById(currentUserId);
+    // Check if actually following - NO PASSWORD NEEDED
+    const currentUser = await User.findById(currentUserId).select('following');
     if (!currentUser.following.includes(userIdToUnfollow)) {
       return res.status(400).json({
         success: false,
@@ -771,7 +772,7 @@ router.put('/profile', authenticateToken, async (req, res) => {
         new: true,
         runValidators: true
       }
-    ).select('-password');
+    ).select('-password -emailVerificationToken -emailVerificationExpires -lockedUntil -loginAttempts');
 
     console.log(`✅ User profile updated: ${userId}`);
 
