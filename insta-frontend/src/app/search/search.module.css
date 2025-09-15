@@ -13,7 +13,7 @@
 }
 
 .headerContent {
-  max-width: 975px;
+  max-width: 100%;
   margin: 0 auto;
   padding: 0 20px;
   height: 60px;
@@ -65,9 +65,10 @@
 
 /* Search Section */
 .searchSection {
-  max-width: 600px;
+  max-width: none;
   margin: 0 auto;
   padding: 40px 20px;
+  width:100%;
 }
 
 .searchContainer {
