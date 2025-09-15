@@ -22,7 +22,7 @@ const CreateReel = () => {
   const fileInputRef = useRef(null);
 
   // Backend API base URL - FIXED: Remove the endpoint from base URL
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://instagram-clone-0t5v.onrender.com';
 
   useEffect(() => {
     if (!isTokenValid()) {
