@@ -72,9 +72,9 @@ const ReelsFeed = () => {
         throw new Error('Authentication required. Please log in first.');
       }
 
-      console.log('Fetching reels from API:', `${API_BASE_URL}/api/reels/feed`);
+      console.log('Fetching reels from API:', `${API_BASE_URL}/reels/feed`);
 
-      const response = await fetch(`${API_BASE_URL}/api/reels/feed?page=${page}&limit=10`, {
+      const response = await fetch(`${API_BASE_URL}/reels/feed?page=${page}&limit=10`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${authToken}`,
@@ -146,7 +146,7 @@ const ReelsFeed = () => {
         throw new Error('Authentication required');
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/reels/${reelId}/like`, {
+      const response = await fetch(`${API_BASE_URL}/reels/${reelId}/like`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${authToken}`,
@@ -200,7 +200,7 @@ const ReelsFeed = () => {
       console.log(`📊 Tracking view for reel ${reelId}`);
 
       // Method 1: Use the dedicated view tracking endpoint
-      const response = await fetch(`${API_BASE_URL}/api/reels/${reelId}/view`, {
+      const response = await fetch(`${API_BASE_URL}/reels/${reelId}/view`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${authToken}`,
@@ -246,7 +246,7 @@ const ReelsFeed = () => {
       if (!authToken) return;
 
       // Method 2: Fetch the reel to trigger view tracking
-      const response = await fetch(`${API_BASE_URL}/api/reels/${reelId}`, {
+      const response = await fetch(`${API_BASE_URL}/reels/${reelId}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${authToken}`,
@@ -307,7 +307,7 @@ const ReelsFeed = () => {
         throw new Error('Authentication required');
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/reels/${reelId}/comments`, {
+      const response = await fetch(`${API_BASE_URL}/reels/${reelId}/comments`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${authToken}`,
@@ -349,7 +349,7 @@ const ReelsFeed = () => {
         throw new Error('Authentication required');
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/reels/${currentReelId}/comment`, {
+      const response = await fetch(`${API_BASE_URL}/reels/${currentReelId}/comment`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${authToken}`,
@@ -406,7 +406,7 @@ const ReelsFeed = () => {
       
       if (authToken) {
         // Track share on backend
-        fetch(`${API_BASE_URL}/api/reels/${reelId}/share`, {
+        fetch(`${API_BASE_URL}/reels/${reelId}/share`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${authToken}`,
