@@ -143,26 +143,53 @@ router.post('/register', async (req, res) => {
     // Hash password with higher salt rounds for better security
     const saltRounds = 12;
     logDebug(`Starting password hash with ${saltRounds} salt rounds`);
+    
+    if (!password || password.length === 0) {
+      logError('Password is empty or null before hashing');
+      return res.status(400).json({ message: 'Password is required and cannot be empty' });
+    }
+
     const hashedPassword = await bcrypt.hash(password, saltRounds);
+    
+    // Verify the hash was created successfully
+    if (!hashedPassword || hashedPassword.length < 20) {
+      logError('Password hashing failed or produced invalid hash', {
+        passwordProvided: !!password,
+        passwordLength: password ? password.length : 0,
+        hashProduced: !!hashedPassword,
+        hashLength: hashedPassword ? hashedPassword.length : 0
+      });
+      return res.status(500).json({ message: 'Password processing failed' });
+    }
+
     logDebug('Password hashed successfully', { 
       originalLength: password.length,
       hashedLength: hashedPassword.length,
-      hashPrefix: hashedPassword.substring(0, 10) + '...'
+      hashPrefix: hashedPassword.substring(0, 10) + '...',
+      hashValid: hashedPassword.startsWith('$2')
     });
 
-    // Create new user
+    // Create new user with explicit password validation
     logDebug('Creating new user document...');
-    const newUser = new User({
+    const userData = {
       username: normalizedUsername,
       email: normalizedEmail,
-      password: hashedPassword,
+      password: hashedPassword, // Ensure password is included
       fullName: trimmedFullName,
       profilePicture: '', // Default empty profile picture
       bio: '', // Default empty bio
       followers: [],
       following: [],
       posts: []
-    });
+    };
+
+    // Validate required fields before creating
+    if (!userData.password) {
+      logError('Password missing from user data object');
+      return res.status(500).json({ message: 'User creation failed - password missing' });
+    }
+
+    const newUser = new User(userData);
 
     logDebug('Saving user to database...');
     const savedUser = await newUser.save();
@@ -333,9 +360,9 @@ router.post('/login', async (req, res) => {
       normalized: normalizedEmail.substring(0, 3) + '***'
     });
 
-    // Find user by email
+    // Find user by email - EXPLICITLY SELECT PASSWORD
     logDebug('Searching for user in database...');
-    const user = await User.findOne({ email: normalizedEmail });
+    const user = await User.findOne({ email: normalizedEmail }).select('+password'); // Force include password
     
     if (!user) {
       logDebug('User not found', { email: normalizedEmail.substring(0, 3) + '***' });
