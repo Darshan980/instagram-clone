@@ -4,13 +4,13 @@ import styles from '../dashboard.module.css';
 
 export default function PostCard({
   post, index, user, onImageClick, onLike, onAddComment,
-  commentText, onCommentChange, isCommentLoading, isLikeLoading
+  commentText, onCommentChange, isCommentLoading, isLikeLoading, isVisible
 }) {
   const isLiked = isLikedByCurrentUser(post, user);
 
   return (
     <article 
-      className={styles.post}
+      className={`${styles.post} ${isVisible ? styles.postVisible : ''}`}
       data-post-id={post._id}
       style={{ animationDelay: `${index * 0.1}s` }}
     >
