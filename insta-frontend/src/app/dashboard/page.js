@@ -1,4 +1,4 @@
-// dashboard/page.js (Main Component - Simplified)
+// dashboard/page.js (Main Component - Updated)
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -47,11 +47,11 @@ export default function Dashboard() {
     handleCommentChange,
     commentLoading,
     likeLoading,
-    visiblePosts, // ADDED
+    visiblePosts,
     setPosts
   } = useDashboard();
 
-  // ADDED: API object for PostModal
+  // API object for PostModal
   const api = {
     getPost,
     getPostComments,
@@ -125,24 +125,29 @@ export default function Dashboard() {
         />
       )}
 
-      <Feed
-        posts={posts}
-        postsLoading={postsLoading}
-        error={error}
-        user={user}
-        onStoryClick={handleStoryClick}
-        onPostImageClick={handlePostImageClick}
-        onLike={handleLike}
-        onAddComment={handleAddComment}
-        commentTexts={commentTexts}
-        onCommentChange={handleCommentChange}
-        commentLoading={commentLoading}
-        likeLoading={likeLoading}
-        hasMore={hasMore}
-        loadingMore={loadingMore}
-        onLoadMore={loadMorePosts}
-        visiblePosts={visiblePosts} // ADDED
-      />
+      {/* Changed from styles.main to styles.dashboardMain */}
+      <main className={styles.dashboardMain}>
+        <div className={styles.mainContent}>
+          <Feed
+            posts={posts}
+            postsLoading={postsLoading}
+            error={error}
+            user={user}
+            onStoryClick={handleStoryClick}
+            onPostImageClick={handlePostImageClick}
+            onLike={handleLike}
+            onAddComment={handleAddComment}
+            commentTexts={commentTexts}
+            onCommentChange={handleCommentChange}
+            commentLoading={commentLoading}
+            likeLoading={likeLoading}
+            hasMore={hasMore}
+            loadingMore={loadingMore}
+            onLoadMore={loadMorePosts}
+            visiblePosts={visiblePosts}
+          />
+        </div>
+      </main>
 
       <RightSidebar
         user={user}
@@ -172,7 +177,7 @@ export default function Dashboard() {
         isOpen={isPostModalOpen}
         onClose={() => setIsPostModalOpen(false)}
         onUpdate={handleModalPostUpdate}
-        api={api} // ADDED
+        api={api}
       />
     </div>
   );
