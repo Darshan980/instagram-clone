@@ -1,16 +1,16 @@
-// dashboard/page.js (Main Component - Simplified)
+// dashboard/page.js
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Sidebar from '../components/layout/Sidebar';
-import CreateSidebar from '../components/layout/CreateSidebar';
-import RightSidebar from '../components/layout/RightSidebar';
+import Sidebar from './components/layout/Sidebar';
+import CreateSidebar from './components/layout/CreateSidebar';
+import RightSidebar from './components/layout/RightSidebar';
 import Feed from './components/Feed';
 import { useDashboard } from './hooks/useDashboard';
 import StoryViewer from '../../components/StoryViewer';
-import PostModal from '../components/PostModal';
-import { isTokenValid } from '../../utils/auth';
+import PostModal from './components/PostModal';
+import { isTokenValid, getPost, getPostComments, toggleLikePost, addComment } from '../../utils/auth';
 import styles from './dashboard.module.css';
 
 export default function Dashboard() {
@@ -47,8 +47,17 @@ export default function Dashboard() {
     handleCommentChange,
     commentLoading,
     likeLoading,
+    visiblePosts,
     setPosts
   } = useDashboard();
+
+  // API object for PostModal
+  const api = {
+    getPost,
+    getPostComments,
+    toggleLikePost,
+    addComment
+  };
 
   useEffect(() => {
     if (!isTokenValid()) {
@@ -73,7 +82,14 @@ export default function Dashboard() {
     setPosts(prevPosts => 
       prevPosts.map(post => 
         post._id === updatedPostData.postId 
-          ? { ...post, ...updatedPostData }
+          ? { 
+              ...post, 
+              likes: updatedPostData.likes || post.likes,
+              comments: updatedPostData.comments || post.comments,
+              isLikedByUser: updatedPostData.isLikedByUser !== undefined 
+                ? updatedPostData.isLikedByUser 
+                : post.isLikedByUser,
+            }
           : post
       )
     );
@@ -125,6 +141,7 @@ export default function Dashboard() {
         hasMore={hasMore}
         loadingMore={loadingMore}
         onLoadMore={loadMorePosts}
+        visiblePosts={visiblePosts}
       />
 
       <RightSidebar
@@ -155,6 +172,7 @@ export default function Dashboard() {
         isOpen={isPostModalOpen}
         onClose={() => setIsPostModalOpen(false)}
         onUpdate={handleModalPostUpdate}
+        api={api}
       />
     </div>
   );
