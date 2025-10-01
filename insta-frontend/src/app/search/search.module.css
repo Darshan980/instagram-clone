@@ -1,6 +1,10 @@
 .container {
   min-height: 100vh;
   background-color: #fafafa;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
 /* Header */
@@ -65,14 +69,15 @@
 
 /* FIXED: Search Section - Centered and Wider */
 .searchSection {
-  max-width: 600px;
+  max-width: 800px;
+  width: 100%;
   margin: 0 auto;
   padding: 40px 20px;
-  width:100%;
 }
 
 .searchContainer {
   margin-bottom: 30px;
+  width: 100%;
 }
 
 .searchInputContainer {
@@ -129,7 +134,8 @@
 /* FIXED: Results Container - Centered */
 .resultsContainer {
   min-height: 400px;
-  max-width: 600px;
+  max-width: 800px;
+  width: 100%;
   margin: 0 auto;
 }
 
