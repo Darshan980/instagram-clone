@@ -346,12 +346,14 @@
 .feedContainer {
   display: flex;
   flex-direction: column;
+  width:100:;
 }
 
 .postsContainer {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  
 }
 
 /* Post Styles */
