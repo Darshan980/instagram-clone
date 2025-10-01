@@ -130,7 +130,7 @@ export default function ExplorePage() {
               </div>
             ) : posts.length > 0 && (
               <div className={styles.endMessage}>
-                <p>You've seen all the trending posts! 🎉</p>
+                <p>You&apos;ve seen all the trending posts! 🎉</p>
                 <Link href="/dashboard" className={styles.backButton}>Back to Home</Link>
               </div>
             )}
