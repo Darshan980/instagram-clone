@@ -1,5 +1,5 @@
 // dashboard/components/CreateSidebar.js
-import styles from '../dashboard.module.css';
+import styles from '../../dashboard/dashboard.module.css';
 
 export default function CreateSidebar({ onClose, onOptionClick }) {
   const options = [
