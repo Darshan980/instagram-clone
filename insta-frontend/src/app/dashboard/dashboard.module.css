@@ -1276,7 +1276,8 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-}left: 72px;
+}boardMain {
+    margin-left: 72px;
   }
   
   .mainContent {
@@ -1294,5 +1295,4 @@
   }
   
   .main,
-  .dashboardMain {
-    margin-
+  .dash
