@@ -1276,7 +1276,7 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-}boardMain {
+.boardMain {
     margin-left: 72px;
   }
   
@@ -1286,7 +1286,7 @@
   
   .createSidebar {
     left: 72px;
-  }
+  
 }
 
 @media (max-width: 480px) {
