@@ -40,7 +40,7 @@ export default function Feed({
               <div className={styles.emptyIcon}>📷</div>
               <h3>No posts yet</h3>
               <p>Start following people or create your first post!</p>
-              <Link href="/create-post" className={styles.createFirstPost}>
+              <Link href="/create" className={styles.createFirstPost}>
                 Create Your First Post
               </Link>
             </div>
