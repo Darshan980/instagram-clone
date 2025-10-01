@@ -10,7 +10,7 @@ import { useDashboard } from './hooks/useDashboard';
 import StoryViewer from '../../components/StoryViewer';
 import PostModal from '../components/PostModal';
 import { isTokenValid } from '../../utils/auth';
-import { useDashboard } from './hooks/useDashboard';
+import useDashboard from './hooks/useDashboard';
 import styles from './dashboard.module.css';
 
 export default function Dashboard() {
