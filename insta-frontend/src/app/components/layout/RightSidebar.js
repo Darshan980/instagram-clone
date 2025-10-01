@@ -1,7 +1,7 @@
 // dashboard/components/RightSidebar.js
 import Link from 'next/link';
 import { RefreshCw, UserPlus, X, Users, Search } from 'lucide-react';
-import { getProfileImageSrc, formatFollowerCount } from '../utils/helpers';
+import { getProfileImageSrc, formatFollowerCount } from '../../dashboard/utils/helpers';
 import styles from '../../dashboard/dashboard.module.css';
 
 export default function RightSidebar({
