@@ -1,15 +1,15 @@
-// dashboard/page.js
+// dashboard/page.js (Main Component - Simplified)
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Sidebar from './components/layout/Sidebar';
-import CreateSidebar from './components/layout/CreateSidebar';
-import RightSidebar from './components/layout/RightSidebar';
+import Sidebar from '../components/layout/Sidebar';
+import CreateSidebar from '../components/layout/CreateSidebar';
+import RightSidebar from '../components/layout/RightSidebar';
 import Feed from './components/Feed';
 import { useDashboard } from './hooks/useDashboard';
 import StoryViewer from '../../components/StoryViewer';
-import PostModal from './components/PostModal';
+import PostModal from '../components/PostModal';
 import { isTokenValid, getPost, getPostComments, toggleLikePost, addComment } from '../../utils/auth';
 import styles from './dashboard.module.css';
 
@@ -47,11 +47,11 @@ export default function Dashboard() {
     handleCommentChange,
     commentLoading,
     likeLoading,
-    visiblePosts,
+    visiblePosts, // ADDED
     setPosts
   } = useDashboard();
 
-  // API object for PostModal
+  // ADDED: API object for PostModal
   const api = {
     getPost,
     getPostComments,
@@ -141,7 +141,7 @@ export default function Dashboard() {
         hasMore={hasMore}
         loadingMore={loadingMore}
         onLoadMore={loadMorePosts}
-        visiblePosts={visiblePosts}
+        visiblePosts={visiblePosts} // ADDED
       />
 
       <RightSidebar
@@ -172,7 +172,7 @@ export default function Dashboard() {
         isOpen={isPostModalOpen}
         onClose={() => setIsPostModalOpen(false)}
         onUpdate={handleModalPostUpdate}
-        api={api}
+        api={api} // ADDED
       />
     </div>
   );
