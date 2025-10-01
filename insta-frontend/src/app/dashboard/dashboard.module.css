@@ -218,19 +218,19 @@
 
 /* Main Content - DASHBOARD SPECIFIC (with right sidebar) */
 .dashboardMain {
-  flex: 1;
   margin-left: 245px;
   margin-right: 320px;
   min-height: 100vh;
+  background-color: #fafafa;
+  padding-top: 30px;
   display: flex;
   justify-content: center;
 }
 
 .mainContent {
-  max-width: 630px;
+  max-width: 470px;
   width: 100%;
-  margin: 0 auto;
-  padding: 30px 20px;
+  padding: 0;
 }
 
 /* Full width variant for other pages */
@@ -350,12 +350,15 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  max-width: 470px;
+  margin: 0 auto;
 }
 
 .postsContainer {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  width: 100%;
 }
 
 /* Post Styles */
