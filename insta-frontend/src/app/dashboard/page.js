@@ -1,51 +1,161 @@
+// dashboard/page.js (Main Component - Simplified)
 'use client';
 
 import { useState, useEffect } from 'react';
-import Header from './components/Header';
-import StatsCards from './components/StatsCards';
-import ChartSection from './components/ChartSection';
-import RecentActivity from './components/RecentActivity';
-import { fetchDashboardData } from './utils/api';
+import { useRouter } from 'next/navigation';
 import Sidebar from '../components/layout/Sidebar';
 import CreateSidebar from '../components/layout/CreateSidebar';
 import Feed from './components/Feed';
 import { useDashboard } from './hooks/useDashboard';
+import StoryViewer from '../../components/StoryViewer';
+import PostModal from '../components/PostModal';
+import { isTokenValid } from '../../utils/auth';
+import { useDashboard } from './hooks/useDashboard';
+import styles from './dashboard.module.css';
 
 export default function Dashboard() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const [showCreateSidebar, setShowCreateSidebar] = useState(false);
+  const [showStoryViewer, setShowStoryViewer] = useState(false);
+  const [selectedStories, setSelectedStories] = useState([]);
+  const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
+  const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+  const [selectedPostId, setSelectedPostId] = useState(null);
+
+  const {
+    user,
+    posts,
+    loading,
+    postsLoading,
+    error,
+    suggestions,
+    suggestionsLoading,
+    suggestionsError,
+    followingStates,
+    showAllSuggestions,
+    setShowAllSuggestions,
+    handleLogout,
+    handleLike,
+    handleAddComment,
+    handleFollow,
+    handleDismiss,
+    loadSuggestions,
+    loadMorePosts,
+    hasMore,
+    loadingMore,
+    commentTexts,
+    handleCommentChange,
+    commentLoading,
+    likeLoading,
+    setPosts
+  } = useDashboard();
 
   useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    try {
-      const result = await fetchDashboardData();
-      setData(result);
-    } catch (error) {
-      console.error('Error loading dashboard:', error);
-    } finally {
-      setLoading(false);
+    if (!isTokenValid()) {
+      router.push('/login');
     }
+  }, [router]);
+
+  const handleStoryClick = (storyGroup) => {
+    setSelectedStories(storyGroup.stories);
+    setCurrentStoryIndex(0);
+    setShowStoryViewer(true);
+  };
+
+  const handlePostImageClick = (postId, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedPostId(postId);
+    setIsPostModalOpen(true);
+  };
+
+  const handleModalPostUpdate = (updatedPostData) => {
+    setPosts(prevPosts => 
+      prevPosts.map(post => 
+        post._id === updatedPostData.postId 
+          ? { ...post, ...updatedPostData }
+          : post
+      )
+    );
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl">Loading...</div>
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingSpinner}></div>
+        <p>Loading your feed...</p>
       </div>
     );
   }
 
+  if (!user) return null;
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <StatsCards stats={data?.stats} />
-        <ChartSection chartData={data?.chartData} />
-        <RecentActivity activities={data?.activities} />
-      </main>
+    <div className={styles.container}>
+      <Sidebar
+        user={user}
+        onLogout={handleLogout}
+        onCreateClick={() => setShowCreateSidebar(true)}
+        showCreateActive={showCreateSidebar}
+      />
+
+      {showCreateSidebar && (
+        <CreateSidebar
+          onClose={() => setShowCreateSidebar(false)}
+          onOptionClick={(path) => {
+            router.push(path);
+            setShowCreateSidebar(false);
+          }}
+        />
+      )}
+
+      <Feed
+        posts={posts}
+        postsLoading={postsLoading}
+        error={error}
+        user={user}
+        onStoryClick={handleStoryClick}
+        onPostImageClick={handlePostImageClick}
+        onLike={handleLike}
+        onAddComment={handleAddComment}
+        commentTexts={commentTexts}
+        onCommentChange={handleCommentChange}
+        commentLoading={commentLoading}
+        likeLoading={likeLoading}
+        hasMore={hasMore}
+        loadingMore={loadingMore}
+        onLoadMore={loadMorePosts}
+      />
+
+      <RightSidebar
+        user={user}
+        suggestions={suggestions}
+        suggestionsLoading={suggestionsLoading}
+        suggestionsError={suggestionsError}
+        followingStates={followingStates}
+        showAllSuggestions={showAllSuggestions}
+        onToggleShowAll={() => setShowAllSuggestions(!showAllSuggestions)}
+        onRefresh={() => loadSuggestions(true)}
+        onFollow={handleFollow}
+        onDismiss={handleDismiss}
+      />
+
+      {showStoryViewer && (
+        <StoryViewer
+          stories={selectedStories}
+          currentIndex={currentStoryIndex}
+          onClose={() => setShowStoryViewer(false)}
+          onNext={setCurrentStoryIndex}
+          onPrevious={setCurrentStoryIndex}
+        />
+      )}
+
+      <PostModal
+        postId={selectedPostId}
+        isOpen={isPostModalOpen}
+        onClose={() => setIsPostModalOpen(false)}
+        onUpdate={handleModalPostUpdate}
+      />
     </div>
   );
 }
