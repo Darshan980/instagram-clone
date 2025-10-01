@@ -4,12 +4,15 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { isTokenValid, getCurrentUserProfile, logout } from '../../utils/auth';
-import Sidebar from './layout/Sidebar';
-import CreateSidebar from './layout/CreateSidebar';
+import Sidebar from '../dashboard/components/Sidebar';
+import CreateSidebar from '../dashboard/components/CreateSidebar';
 import styles from '../dashboard/dashboard.module.css';
 
+// Cache user data outside component to persist across route changes
+let cachedUser = null;
+
 export default function Layout({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(cachedUser);
   const [showCreate, setShowCreate] = useState(false);
   const router = useRouter();
 
@@ -19,18 +22,24 @@ export default function Layout({ children }) {
       return;
     }
 
-    getCurrentUserProfile()
-      .then(result => {
-        if (result.success) {
-          setUser(result.data?.user || result.user || result.data);
-        } else {
-          router.push('/login');
-        }
-      })
-      .catch(() => router.push('/login'));
+    // Only fetch if we don't have cached user
+    if (!cachedUser) {
+      getCurrentUserProfile()
+        .then(result => {
+          if (result.success) {
+            const userData = result.data?.user || result.user || result.data;
+            cachedUser = userData;
+            setUser(userData);
+          } else {
+            router.push('/login');
+          }
+        })
+        .catch(() => router.push('/login'));
+    }
   }, [router]);
 
   const handleLogout = () => {
+    cachedUser = null; // Clear cache on logout
     logout();
   };
 
@@ -43,7 +52,6 @@ export default function Layout({ children }) {
     setShowCreate(false);
   };
 
-  // Don't render anything until we have user data
   if (!user) return null;
 
   return (
