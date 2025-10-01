@@ -5,16 +5,31 @@ import PostCard from './PostCard';
 import styles from '../dashboard.module.css';
 
 export default function Feed({
-  posts, postsLoading, error, user, onStoryClick, onPostImageClick,
-  onLike, onAddComment, commentTexts, onCommentChange,
-  commentLoading, likeLoading, hasMore, loadingMore, onLoadMore
+  posts,
+  postsLoading,
+  error,
+  user,
+  onStoryClick,
+  onPostImageClick,
+  onLike,
+  onAddComment,
+  commentTexts,
+  onCommentChange,
+  commentLoading,
+  likeLoading,
+  hasMore,
+  loadingMore,
+  onLoadMore,
+  visiblePosts
 }) {
   if (postsLoading) {
     return (
       <main className={styles.main}>
-        <div className={styles.feedLoading}>
-          <div className={styles.loadingSpinner}></div>
-          <span>Loading posts...</span>
+        <div className={styles.mainContent}>
+          <div className={styles.feedLoading}>
+            <div className={styles.loadingSpinner}></div>
+            <span>Loading posts...</span>
+          </div>
         </div>
       </main>
     );
@@ -46,8 +61,10 @@ export default function Feed({
             </div>
           ) : (
             <div className={styles.postsContainer}>
-              {posts.map((post, index) => (
-                post?._id && (
+              {posts.map((post, index) => {
+                if (!post || !post._id) return null;
+
+                return (
                   <PostCard
                     key={post._id}
                     post={post}
@@ -60,9 +77,10 @@ export default function Feed({
                     onCommentChange={onCommentChange}
                     isCommentLoading={commentLoading[post._id]}
                     isLikeLoading={likeLoading[post._id]}
+                    isVisible={true}
                   />
-                )
-              ))}
+                );
+              })}
 
               {hasMore && (
                 <div className={styles.loadMoreContainer}>
