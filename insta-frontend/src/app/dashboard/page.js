@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Sidebar from '../components/layout/Sidebar';
 import CreateSidebar from '../components/layout/CreateSidebar';
+import RightSidebar from '../components/layout/RightSidebar';
 import Feed from './components/Feed';
 import { useDashboard } from './hooks/useDashboard';
 import StoryViewer from '../../components/StoryViewer';
