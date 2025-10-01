@@ -208,8 +208,16 @@
   color: #8e8e8e;
 }
 
-/* Main Content */
+/* Main Content - DEFAULT (for Layout.js - no right sidebar) */
 .main {
+  flex: 1;
+  margin-left: 245px;
+  margin-right: 0;
+  min-height: 100vh;
+}
+
+/* Main Content - DASHBOARD SPECIFIC (with right sidebar) */
+.dashboardMain {
   flex: 1;
   margin-left: 245px;
   margin-right: 320px;
@@ -220,6 +228,11 @@
   max-width: 630px;
   margin: 0 auto;
   padding: 30px 20px;
+}
+
+/* Full width variant for other pages */
+.fullWidth {
+  max-width: 935px;
 }
 
 /* Stories Section */
@@ -1192,7 +1205,7 @@
     display: none;
   }
   
-  .main {
+  .dashboardMain {
     margin-right: 0;
   }
 }
@@ -1225,25 +1238,8 @@
     margin-right: 0;
   }
   
-  .main {
-    margin-left: 72px;
-  }
-  
-  .mainContent {
-    padding: 20px 12px;
-  }
-  
-  .createSidebar {
-    left: 72px;
-  }
-}
-
-@media (max-width: 480px) {
-  .sidebar {
-    display: none;
-  }
-  
-  .main {
+  .main,
+  .dashboardMain {
     margin-left: 0;
   }
   
@@ -1280,4 +1276,23 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}left: 72px;
+  }
+  
+  .mainContent {
+    padding: 20px 12px;
+  }
+  
+  .createSidebar {
+    left: 72px;
+  }
 }
+
+@media (max-width: 480px) {
+  .sidebar {
+    display: none;
+  }
+  
+  .main,
+  .dashboardMain {
+    margin-
