@@ -4,8 +4,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { isTokenValid, getCurrentUserProfile, logout } from '../../utils/auth';
-import Sidebar from '../dashboard/components/Sidebar';
-import CreateSidebar from '../dashboard/components/CreateSidebar';
+import Sidebar from './layout/Sidebar';
+import CreateSidebar from './layout/CreateSidebar';
 import styles from '../dashboard/dashboard.module.css';
 
 export default function Layout({ children }) {
