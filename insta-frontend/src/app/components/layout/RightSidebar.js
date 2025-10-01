@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { RefreshCw, UserPlus, X, Users, Search } from 'lucide-react';
 import { getProfileImageSrc, formatFollowerCount } from '../utils/helpers';
-import styles from '../dashboard.module.css';
+import styles from '../../dashboard/dashboard.module.css';
 
 export default function RightSidebar({
   user, suggestions, suggestionsLoading, suggestionsError,
