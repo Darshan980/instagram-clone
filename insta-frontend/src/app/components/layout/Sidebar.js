@@ -1,6 +1,6 @@
 // dashboard/components/Sidebar.js
 import Link from 'next/link';
-import styles from '../dashboard.module.css';
+import styles from '../../dashboard/dashboard.module.css';
 
 export default function Sidebar({ user, onLogout, onCreateClick, showCreateActive }) {
   return (
