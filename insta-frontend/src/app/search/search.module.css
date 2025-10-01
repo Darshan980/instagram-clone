@@ -63,12 +63,11 @@
   background-color: #1877f2;
 }
 
-/* Search Section */
+/* FIXED: Search Section - Centered and Wider */
 .searchSection {
-  max-width: none;
+  max-width: 600px;
   margin: 0 auto;
   padding: 40px 20px;
-  width:100%;
 }
 
 .searchContainer {
@@ -126,9 +125,11 @@
   background-color: #f5f5f5;
 }
 
-/* Results Container */
+/* FIXED: Results Container - Centered */
 .resultsContainer {
   min-height: 400px;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 /* Loading */
@@ -244,17 +245,34 @@
   color: #8e8e8e;
 }
 
-.viewProfile {
+.bio {
+  font-size: 13px;
   color: #8e8e8e;
+  margin-top: 4px;
+}
+
+.followStatus {
+  margin-left: 12px;
+}
+
+.followingBadge {
+  background-color: #efefef;
+  color: #262626;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .arrow {
   font-size: 16px;
+  color: #8e8e8e;
   transition: transform 0.2s;
 }
 
 .userItem:hover .arrow {
   transform: translateX(4px);
+  color: #262626;
 }
 
 /* No Results */
@@ -279,9 +297,37 @@
 }
 
 .noResults p {
-  margin: 0;
+  margin: 0 0 20px 0;
   color: #8e8e8e;
   font-size: 14px;
+}
+
+.searchSuggestions {
+  text-align: left;
+  max-width: 300px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #fafafa;
+  border-radius: 8px;
+}
+
+.searchSuggestions h4 {
+  margin: 0 0 12px 0;
+  color: #262626;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.searchSuggestions ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #8e8e8e;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.searchSuggestions li {
+  margin-bottom: 4px;
 }
 
 /* Search Prompt */
@@ -359,6 +405,11 @@
   
   .searchSection {
     padding: 20px 16px;
+    max-width: 100%;
+  }
+
+  .resultsContainer {
+    max-width: 100%;
   }
   
   .searchInputContainer {
@@ -366,7 +417,7 @@
   }
   
   .searchInput {
-    font-size: 16px; /* Prevent zoom on iOS */
+    font-size: 16px;
   }
   
   .userItem {
