@@ -1294,5 +1294,7 @@
     display: none;
   }
   
-  .main,
-  .dash
+.main,
+.dashboardMain {
+  margin-left: 0;  /* No sidebar on mobile */
+}
