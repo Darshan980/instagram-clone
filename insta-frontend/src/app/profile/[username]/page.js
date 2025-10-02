@@ -819,8 +819,14 @@ function EditProfileModal({ user, onClose, onUpdate }) {
       console.log('Server returned user data:', result.data);
 
       if (result.success) {
-        // FIXED: Ensure proper data structure with ID mapping for the modal update
-        let updatedUserData = result.data.user || result.data;
+        // FIXED: Properly extract user data from the nested response structure
+        // The API returns { success, message, user } but result.data contains the full response
+        let updatedUserData = result.data?.user || result.data;
+        
+        // If result.data has a 'user' property, that's the actual user data
+        if (result.data && result.data.user && typeof result.data.user === 'object') {
+          updatedUserData = result.data.user;
+        }
         
         console.log('Raw updated user data from server:', {
           fullName: updatedUserData?.fullName,
@@ -829,15 +835,10 @@ function EditProfileModal({ user, onClose, onUpdate }) {
           profilePicture: updatedUserData?.profilePicture
         });
         
-        // CRITICAL FIX: If server doesn't return bio/picture, use our local values
-        if (!updatedUserData || !updatedUserData.bio) {
-          console.warn('⚠️ Server did not return bio, using local form data');
-        }
-        if (!updatedUserData || !updatedUserData.profilePicture) {
-          console.warn('⚠️ Server did not return profilePicture');
-        }
-        
-        if (!updatedUserData) {
+        // CRITICAL FIX: Ensure we're using the actual data from the server
+        // The server should return the complete updated user object
+        if (!updatedUserData || typeof updatedUserData !== 'object') {
+          console.error('Invalid user data received from server');
           updatedUserData = {
             ...user,
             fullName: formData.fullName.trim(),
@@ -845,13 +846,11 @@ function EditProfileModal({ user, onClose, onUpdate }) {
             profilePicture: profilePicturePreview || user.profilePicture
           };
         } else {
-          // Merge server data with local form data for fields that might be missing
+          // Use server data but ensure bio and fullName are present
           updatedUserData = {
             ...updatedUserData,
-            // Use server data if available, otherwise use form data
             fullName: updatedUserData.fullName || formData.fullName.trim(),
             bio: updatedUserData.bio !== undefined ? updatedUserData.bio : formData.bio.trim(),
-            // Use preview if we just uploaded, otherwise use server data or keep existing
             profilePicture: profilePicturePreview || updatedUserData.profilePicture || user.profilePicture
           };
         }
