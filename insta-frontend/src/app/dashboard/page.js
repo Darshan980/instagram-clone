@@ -1,4 +1,4 @@
-// dashboard/page.js (Main Component - Updated)
+// dashboard/page.js (Redesigned with new CSS structure)
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -11,7 +11,9 @@ import { useDashboard } from './hooks/useDashboard';
 import StoryViewer from '../../components/StoryViewer';
 import PostModal from '../components/PostModal';
 import { isTokenValid, getPost, getPostComments, toggleLikePost, addComment } from '../../utils/auth';
-import styles from './dashboard.module.css';
+import layoutStyles from './styles/layout.module.css';
+import sidebarStyles from './styles/sidebar.module.css';
+import rightSidebarStyles from './styles/rightSidebar.module.css';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -95,19 +97,11 @@ export default function Dashboard() {
     );
   };
 
-  if (loading) {
-    return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingSpinner}></div>
-        <p>Loading your feed...</p>
-      </div>
-    );
-  }
-
-  if (!user) return null;
+  if (!user && !loading) return null;
 
   return (
-    <div className={styles.container}>
+    <div className={layoutStyles.dashboardLayout}>
+      {/* Left Sidebar */}
       <Sidebar
         user={user}
         onLogout={handleLogout}
@@ -125,9 +119,9 @@ export default function Dashboard() {
         />
       )}
 
-      {/* Changed from styles.main to styles.dashboardMain */}
-      <main className={styles.dashboardMain}>
-        <div className={styles.mainContent}>
+      {/* Main Feed Content */}
+      <main className={layoutStyles.dashboardMain}>
+        <div className={layoutStyles.mainContent}>
           <Feed
             posts={posts}
             postsLoading={postsLoading}
@@ -149,6 +143,7 @@ export default function Dashboard() {
         </div>
       </main>
 
+      {/* Right Sidebar */}
       <RightSidebar
         user={user}
         suggestions={suggestions}
@@ -162,6 +157,7 @@ export default function Dashboard() {
         onDismiss={handleDismiss}
       />
 
+      {/* Modals */}
       {showStoryViewer && (
         <StoryViewer
           stories={selectedStories}
