@@ -24,7 +24,7 @@
 /* Reel Card - ONE PER PAGE */
 .reelCard {
   position: relative;
-  width: 100%;
+  width: 50%;
   height: 100vh;
   scroll-snap-align: start;
   display: flex;
