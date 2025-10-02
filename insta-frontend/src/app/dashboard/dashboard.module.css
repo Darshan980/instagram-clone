@@ -208,15 +208,14 @@
   color: #8e8e8e;
 }
 
-/* Main Content - DEFAULT (for Layout.js - no right sidebar) */
+/* Main Content - DEFAULT (for other pages like Search - full width) */
 .main {
   flex: 1;
   margin-left: 0;
   margin-right: 0;
   min-height: 100vh;
   width: 100%;
-  display: flex;
-  justify-content: center;
+  padding: 20px;
 }
 
 /* Main Content - DASHBOARD SPECIFIC (with right sidebar) */
@@ -749,7 +748,7 @@
   font-size: 16px;
 }
 
-/* Right Sidebar */
+/* Right Sidebar - Only visible on dashboard */
 .rightSidebar {
   position: fixed;
   right: 0;
@@ -758,6 +757,12 @@
   height: 100vh;
   background-color: transparent;
   overflow-y: auto;
+  display: none; /* Hidden by default */
+}
+
+/* Show right sidebar only when parent has dashboardWithSidebar class */
+.dashboardWithSidebar .rightSidebar {
+  display: block;
 }
 
 .rightSidebarContent {
