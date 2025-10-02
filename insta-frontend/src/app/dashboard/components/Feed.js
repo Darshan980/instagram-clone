@@ -24,89 +24,81 @@ export default function Feed({
 }) {
   if (postsLoading) {
     return (
-      <main className={styles.main}>
-        <div className={styles.mainContent}>
-          <div className={styles.feedLoading}>
-            <div className={styles.loadingSpinner}></div>
-            <span>Loading posts...</span>
-          </div>
-        </div>
-      </main>
+      <div className={styles.feedLoading}>
+        <div className={styles.loadingSpinner}></div>
+        <span>Loading posts...</span>
+      </div>
     );
   }
 
   return (
-    <main className={styles.main}>
-      <div className={styles.mainContent}>
-        <div className={styles.storiesSection}>
-          <StoriesBar onStoryClick={onStoryClick} />
-        </div>
+    <>
+      <div className={styles.storiesSection}>
+        <StoriesBar onStoryClick={onStoryClick} />
+      </div>
 
-        {error && (
-          <div className={styles.error}>
-            <span>⚠️</span>
-            {error}
+      {error && (
+        <div className={styles.error}>
+          <span>⚠️</span>
+          {error}
+        </div>
+      )}
+
+      <div className={styles.feedContainer}>
+        {posts.length === 0 ? (
+          <div className={styles.emptyFeed}>
+            <div className={styles.emptyIcon}>📷</div>
+            <h3>No posts yet</h3>
+            <p>Start following people or create your first post!</p>
+            <Link href="/create" className={styles.createFirstPost}>
+              Create Your First Post
+            </Link>
+          </div>
+        ) : (
+          <div className={styles.postsContainer}>
+            {posts.map((post, index) => {
+              if (!post || !post._id) return null;
+              return (
+                <PostCard
+                  key={post._id}
+                  post={post}
+                  index={index}
+                  user={user}
+                  onImageClick={onPostImageClick}
+                  onLike={onLike}
+                  onAddComment={onAddComment}
+                  commentText={commentTexts[post._id] || ''}
+                  onCommentChange={onCommentChange}
+                  isCommentLoading={commentLoading[post._id]}
+                  isLikeLoading={likeLoading[post._id]}
+                  isVisible={true}
+                />
+              );
+            })}
+            {hasMore && (
+              <div className={styles.loadMoreContainer}>
+                <button
+                  onClick={onLoadMore}
+                  disabled={loadingMore}
+                  className={styles.loadMoreButton}
+                >
+                  {loadingMore ? (
+                    <>
+                      <span className={`${styles.loadingSpinner} ${styles.small}`}></span>
+                      <span>Loading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Load More Posts</span>
+                      <span className={styles.loadMoreIcon}>↓</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         )}
-
-        <div className={styles.feedContainer}>
-          {posts.length === 0 ? (
-            <div className={styles.emptyFeed}>
-              <div className={styles.emptyIcon}>📷</div>
-              <h3>No posts yet</h3>
-              <p>Start following people or create your first post!</p>
-              <Link href="/create" className={styles.createFirstPost}>
-                Create Your First Post
-              </Link>
-            </div>
-          ) : (
-            <div className={styles.postsContainer}>
-              {posts.map((post, index) => {
-                if (!post || !post._id) return null;
-
-                return (
-                  <PostCard
-                    key={post._id}
-                    post={post}
-                    index={index}
-                    user={user}
-                    onImageClick={onPostImageClick}
-                    onLike={onLike}
-                    onAddComment={onAddComment}
-                    commentText={commentTexts[post._id] || ''}
-                    onCommentChange={onCommentChange}
-                    isCommentLoading={commentLoading[post._id]}
-                    isLikeLoading={likeLoading[post._id]}
-                    isVisible={true}
-                  />
-                );
-              })}
-
-              {hasMore && (
-                <div className={styles.loadMoreContainer}>
-                  <button
-                    onClick={onLoadMore}
-                    disabled={loadingMore}
-                    className={styles.loadMoreButton}
-                  >
-                    {loadingMore ? (
-                      <>
-                        <span className={`${styles.loadingSpinner} ${styles.small}`}></span>
-                        <span>Loading...</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>Load More Posts</span>
-                        <span className={styles.loadMoreIcon}>↓</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
       </div>
-    </main>
+    </>
   );
 }
