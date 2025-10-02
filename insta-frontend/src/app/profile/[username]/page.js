@@ -93,7 +93,8 @@ export default function ProfilePage() {
           id: updatedUserData.id,
           username: updatedUserData.username,
           fullName: updatedUserData.fullName,
-          bio: updatedUserData.bio
+          bio: updatedUserData.bio,
+          profilePicture: updatedUserData.profilePicture
         });
         
         // Update user data immediately from the event with proper merging
@@ -103,7 +104,8 @@ export default function ProfilePage() {
             return {
               ...updatedUserData,
               bio: updatedUserData.bio || '',
-              fullName: updatedUserData.fullName || updatedUserData.username || ''
+              fullName: updatedUserData.fullName || updatedUserData.username || '',
+              profilePicture: updatedUserData.profilePicture || null
             };
           }
           
@@ -114,6 +116,7 @@ export default function ProfilePage() {
             // Handle specific fields with proper fallbacks
             bio: updatedUserData.bio !== undefined ? updatedUserData.bio : (prev.bio || ''),
             fullName: updatedUserData.fullName !== undefined ? updatedUserData.fullName : (prev.fullName || prev.username || ''),
+            // FIXED: Always use new profile picture if provided, including empty string for removal
             profilePicture: updatedUserData.profilePicture !== undefined ? updatedUserData.profilePicture : prev.profilePicture,
             
             // Preserve counts that shouldn't be overwritten from settings
@@ -137,12 +140,14 @@ export default function ProfilePage() {
             before: {
               username: prev.username,
               fullName: prev.fullName,
-              bio: prev.bio
+              bio: prev.bio,
+              profilePicture: prev.profilePicture
             },
             after: {
               username: newUser.username,
               fullName: newUser.fullName,
-              bio: newUser.bio
+              bio: newUser.bio,
+              profilePicture: newUser.profilePicture
             }
           });
           
@@ -230,7 +235,8 @@ export default function ProfilePage() {
         id: completeUserData.id,
         username: completeUserData.username,
         fullName: completeUserData.fullName,
-        bio: completeUserData.bio
+        bio: completeUserData.bio,
+        profilePicture: completeUserData.profilePicture
       });
 
       // Fetch user posts with proper ID handling
@@ -309,7 +315,8 @@ export default function ProfilePage() {
             ...userData,
             bio: userData.bio || '',
             fullName: userData.fullName || userData.username || '',
-            profilePicture: userData.profilePicture || null,
+            // FIXED: Always update profile picture from server response
+            profilePicture: userData.profilePicture !== undefined ? userData.profilePicture : (prev?.profilePicture || null),
             followersCount: userData.followersCount || 0,
             followingCount: userData.followingCount || 0,
             // Preserve the actual posts count from current state
@@ -326,6 +333,7 @@ export default function ProfilePage() {
             username: refreshedUser.username,
             fullName: refreshedUser.fullName,
             bio: refreshedUser.bio,
+            profilePicture: refreshedUser.profilePicture,
             postsCount: refreshedUser.postsCount
           });
           
@@ -412,7 +420,8 @@ export default function ProfilePage() {
         return {
           ...updatedUser,
           bio: updatedUser.bio || '',
-          fullName: updatedUser.fullName || updatedUser.username || ''
+          fullName: updatedUser.fullName || updatedUser.username || '',
+          profilePicture: updatedUser.profilePicture || null
         };
       }
       
@@ -431,6 +440,7 @@ export default function ProfilePage() {
         // Handle specific fields that might be nested or have special handling
         bio: updatedUser.bio !== undefined ? updatedUser.bio : (prev.bio || ''),
         fullName: updatedUser.fullName !== undefined ? updatedUser.fullName : (prev.fullName || prev.username || ''),
+        // FIXED: Always update profile picture when provided
         profilePicture: updatedUser.profilePicture !== undefined ? updatedUser.profilePicture : prev.profilePicture,
         
         // Preserve counts that shouldn't be overwritten
@@ -562,6 +572,7 @@ export default function ProfilePage() {
                 src={user.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || user.username)}&size=150&background=0095f6&color=fff`}
                 alt={user.fullName || user.username}
                 className={styles.profilePicture}
+                key={user.profilePicture || 'default'}
                 onError={(e) => {
                   e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || user.username)}&size=150&background=0095f6&color=fff`;
                 }}
@@ -787,6 +798,7 @@ function EditProfileModal({ user, onClose, onUpdate }) {
       
       if (profilePicture) {
         updateData.append('profilePicture', profilePicture);
+        console.log('Including profile picture in update');
       }
 
       console.log('Edit modal updating profile with data:', {
@@ -809,6 +821,11 @@ function EditProfileModal({ user, onClose, onUpdate }) {
             bio: formData.bio.trim(),
             profilePicture: profilePicturePreview || user.profilePicture
           };
+        } else {
+          // If we uploaded a new picture and have a preview, ensure it's used
+          if (profilePicturePreview && !updatedUserData.profilePicture) {
+            updatedUserData.profilePicture = profilePicturePreview;
+          }
         }
         
         // FIXED: Ensure proper ID mapping
@@ -822,10 +839,18 @@ function EditProfileModal({ user, onClose, onUpdate }) {
           _id: updatedUserData._id,
           id: updatedUserData.id,
           fullName: updatedUserData.fullName,
-          bio: updatedUserData.bio
+          bio: updatedUserData.bio,
+          profilePicture: updatedUserData.profilePicture
         });
         
+        // Call onUpdate to update parent component
         onUpdate(updatedUserData);
+        
+        // FIXED: Also dispatch a custom event for other listeners
+        window.dispatchEvent(new CustomEvent('profileUpdated', {
+          detail: updatedUserData
+        }));
+        
         console.log('=== EDIT MODAL SUBMIT SUCCESS ===');
       } else {
         setError(result.error || 'Failed to update profile');
@@ -859,6 +884,7 @@ function EditProfileModal({ user, onClose, onUpdate }) {
                   src={profilePicturePreview || user.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || user.username)}&size=100&background=0095f6&color=fff`}
                   alt="Profile"
                   className={styles.previewImage}
+                  key={profilePicturePreview || user.profilePicture || 'default'}
                 />
               </div>
               <input
