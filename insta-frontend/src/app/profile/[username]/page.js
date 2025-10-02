@@ -94,6 +94,7 @@ export default function ProfilePage() {
           username: updatedUserData.username,
           fullName: updatedUserData.fullName,
           bio: updatedUserData.bio,
+          bioLength: updatedUserData.bio?.length || 0,
           profilePicture: updatedUserData.profilePicture
         });
         
@@ -103,20 +104,17 @@ export default function ProfilePage() {
             console.log('No previous user data, setting new data');
             return {
               ...updatedUserData,
-              bio: updatedUserData.bio || '',
+              bio: updatedUserData.bio !== undefined ? updatedUserData.bio : '',
               fullName: updatedUserData.fullName || updatedUserData.username || '',
-              profilePicture: updatedUserData.profilePicture || null
+              profilePicture: updatedUserData.profilePicture !== undefined ? updatedUserData.profilePicture : null
             };
           }
           
           const newUser = {
             ...prev, // Keep existing data
-            ...updatedUserData, // Override with updated data
-            
-            // Handle specific fields with proper fallbacks
-            bio: updatedUserData.bio !== undefined ? updatedUserData.bio : (prev.bio || ''),
-            fullName: updatedUserData.fullName !== undefined ? updatedUserData.fullName : (prev.fullName || prev.username || ''),
-            // FIXED: Always use new profile picture if provided, including empty string for removal
+            // Override with updated data - use server data as source of truth
+            bio: updatedUserData.bio !== undefined ? updatedUserData.bio : prev.bio,
+            fullName: updatedUserData.fullName !== undefined ? updatedUserData.fullName : prev.fullName,
             profilePicture: updatedUserData.profilePicture !== undefined ? updatedUserData.profilePicture : prev.profilePicture,
             
             // Preserve counts that shouldn't be overwritten from settings
@@ -141,12 +139,14 @@ export default function ProfilePage() {
               username: prev.username,
               fullName: prev.fullName,
               bio: prev.bio,
+              bioLength: prev.bio?.length || 0,
               profilePicture: prev.profilePicture
             },
             after: {
               username: newUser.username,
               fullName: newUser.fullName,
               bio: newUser.bio,
+              bioLength: newUser.bio?.length || 0,
               profilePicture: newUser.profilePicture
             }
           });
@@ -221,9 +221,9 @@ export default function ProfilePage() {
       // Ensure all user fields are properly set
       const completeUserData = {
         ...userData,
-        bio: userData.bio || '', // Ensure bio is always a string
+        bio: userData.bio !== undefined ? userData.bio : '', // Ensure bio is properly set from server
         fullName: userData.fullName || userData.username || '',
-        profilePicture: userData.profilePicture || null,
+        profilePicture: userData.profilePicture !== undefined ? userData.profilePicture : null,
         followersCount: userData.followersCount || 0,
         followingCount: userData.followingCount || 0,
         postsCount: userData.postsCount || 0
@@ -309,14 +309,15 @@ export default function ProfilePage() {
           userData._id = userData.id;
         }
         
-        // Update user data with the fresh data from server while preserving important fields
+        // Update user data with the fresh data from server - use server data as source of truth
         setUser(prev => {
           const refreshedUser = {
-            ...userData,
-            bio: userData.bio || '',
+            ...prev, // Keep previous data as base
+            ...userData, // Override with fresh server data
+            // Use server data for these critical fields
+            bio: userData.bio !== undefined ? userData.bio : '',
             fullName: userData.fullName || userData.username || '',
-            // FIXED: Always update profile picture from server response
-            profilePicture: userData.profilePicture !== undefined ? userData.profilePicture : (prev?.profilePicture || null),
+            profilePicture: userData.profilePicture !== undefined ? userData.profilePicture : null,
             followersCount: userData.followersCount || 0,
             followingCount: userData.followingCount || 0,
             // Preserve the actual posts count from current state
@@ -327,12 +328,13 @@ export default function ProfilePage() {
             isOwnProfile: prev?.isOwnProfile !== undefined ? prev.isOwnProfile : userData.isOwnProfile
           };
           
-          console.log('Profile force refreshed with preserved data:', {
+          console.log('Profile force refreshed with server data:', {
             _id: refreshedUser._id,
             id: refreshedUser.id,
             username: refreshedUser.username,
             fullName: refreshedUser.fullName,
             bio: refreshedUser.bio,
+            bioLength: refreshedUser.bio?.length || 0,
             profilePicture: refreshedUser.profilePicture,
             postsCount: refreshedUser.postsCount
           });
@@ -419,9 +421,9 @@ export default function ProfilePage() {
         
         return {
           ...updatedUser,
-          bio: updatedUser.bio || '',
+          bio: updatedUser.bio !== undefined ? updatedUser.bio : '',
           fullName: updatedUser.fullName || updatedUser.username || '',
-          profilePicture: updatedUser.profilePicture || null
+          profilePicture: updatedUser.profilePicture !== undefined ? updatedUser.profilePicture : null
         };
       }
       
@@ -438,9 +440,8 @@ export default function ProfilePage() {
         ...updatedUser, // Override with updated data
         
         // Handle specific fields that might be nested or have special handling
-        bio: updatedUser.bio !== undefined ? updatedUser.bio : (prev.bio || ''),
-        fullName: updatedUser.fullName !== undefined ? updatedUser.fullName : (prev.fullName || prev.username || ''),
-        // FIXED: Always update profile picture when provided
+        bio: updatedUser.bio !== undefined ? updatedUser.bio : prev.bio,
+        fullName: updatedUser.fullName !== undefined ? updatedUser.fullName : prev.fullName,
         profilePicture: updatedUser.profilePicture !== undefined ? updatedUser.profilePicture : prev.profilePicture,
         
         // Preserve counts that shouldn't be overwritten
