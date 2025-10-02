@@ -213,13 +213,13 @@
   color: #8e8e8e;
 }
 
-/* Main Content - DEFAULT (for other pages like Search - full width) */
+/* Main Content - DEFAULT (for other pages - full width minus left sidebar only) */
 .main {
   flex: 1;
-  margin-left: 0;
-  margin-right: 0;
+  margin-left: 245px;
+  margin-right: 0 !important;
   min-height: 100vh;
-  width: 100%;
+  width: calc(100% - 245px);
   padding: 20px;
 }
 
@@ -1224,7 +1224,7 @@
   }
   
   .dashboardMain {
-    margin-right: 0;
+    margin-right: 0 !important;
   }
 }
 
@@ -1256,7 +1256,11 @@
     margin-right: 0;
   }
   
-  .main,
+  .main {
+    margin-left: 72px;
+    width: calc(100% - 72px);
+  }
+  
   .dashboardMain {
     margin-left: 72px;
   }
