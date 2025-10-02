@@ -100,12 +100,14 @@ export default function Dashboard() {
 
   return (
     <div className={`${styles.container} ${styles.dashboardWithSidebar}`}>
-      <Sidebar
-        user={user}
-        onLogout={handleLogout}
-        onCreateClick={() => setShowCreateSidebar(true)}
-        showCreateActive={showCreateSidebar}
-      />
+      {user && (
+        <Sidebar
+          user={user}
+          onLogout={handleLogout}
+          onCreateClick={() => setShowCreateSidebar(true)}
+          showCreateActive={showCreateSidebar}
+        />
+      )}
 
       {showCreateSidebar && (
         <CreateSidebar
@@ -140,18 +142,20 @@ export default function Dashboard() {
         </div>
       </main>
 
-      <RightSidebar
-        user={user}
-        suggestions={suggestions}
-        suggestionsLoading={suggestionsLoading}
-        suggestionsError={suggestionsError}
-        followingStates={followingStates}
-        showAllSuggestions={showAllSuggestions}
-        onToggleShowAll={() => setShowAllSuggestions(!showAllSuggestions)}
-        onRefresh={() => loadSuggestions(true)}
-        onFollow={handleFollow}
-        onDismiss={handleDismiss}
-      />
+      {user && (
+        <RightSidebar
+          user={user}
+          suggestions={suggestions}
+          suggestionsLoading={suggestionsLoading}
+          suggestionsError={suggestionsError}
+          followingStates={followingStates}
+          showAllSuggestions={showAllSuggestions}
+          onToggleShowAll={() => setShowAllSuggestions(!showAllSuggestions)}
+          onRefresh={() => loadSuggestions(true)}
+          onFollow={handleFollow}
+          onDismiss={handleDismiss}
+        />
+      )}
 
       {showStoryViewer && (
         <StoryViewer
