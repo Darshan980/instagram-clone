@@ -17,14 +17,14 @@
 }
 
 .reelsWrapper {
-  width: 50%;
+  width: 100%;
   height: 100%;
 }
 
 /* Reel Card - ONE PER PAGE */
 .reelCard {
   position: relative;
-  width: 50%;
+  width: 100%;
   height: 100vh;
   scroll-snap-align: start;
   display: flex;
