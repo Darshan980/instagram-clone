@@ -136,8 +136,17 @@ export default function ProfilePage() {
       setUser(completeUserData);
 
       // Fetch user posts
-      const userId = userData._id || userData.id;
-      if (userId) {
+      const userId = userData._id || userData.id || userData.userId;
+      
+      if (!userId) {
+        console.warn('User ID not found in profile data:', userData);
+        setPosts([]);
+        setUser(prev => ({
+          ...prev,
+          postsCount: 0,
+          actualPostsCount: 0
+        }));
+      } else {
         const postsResult = await getUserPosts(userId);
         
         if (postsResult.success) {
@@ -150,6 +159,7 @@ export default function ProfilePage() {
             actualPostsCount: userPosts.length
           }));
         } else {
+          console.error('Failed to fetch posts:', postsResult.error);
           setPosts([]);
           setUser(prev => ({
             ...prev,
@@ -157,8 +167,6 @@ export default function ProfilePage() {
             actualPostsCount: 0
           }));
         }
-      } else {
-        setPosts([]);
       }
 
     } catch (fetchError) {
