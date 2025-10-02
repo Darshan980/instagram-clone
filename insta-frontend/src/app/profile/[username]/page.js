@@ -107,17 +107,35 @@ export default function ProfilePage() {
       
       const profileResult = await getUserProfile(username);
       
-      if (!profileResult.success || !profileResult.data) {
+      console.log('Profile result received:', profileResult);
+      
+      if (!profileResult.success) {
         setError(profileResult.error || 'Failed to load profile');
         setLoading(false);
         setPostsLoading(false);
         return;
       }
 
-      const userData = profileResult.data.user || profileResult.data;
+      // FIXED: Handle the nested data structure correctly
+      // The API returns: { success: true, data: { success: true, data: { user: {...} } } }
+      let userData = null;
       
-      if (!userData) {
-        setError('User data not found');
+      if (profileResult.data?.data?.user) {
+        // Nested structure from apiRequest wrapper
+        userData = profileResult.data.data.user;
+      } else if (profileResult.data?.user) {
+        // Direct structure
+        userData = profileResult.data.user;
+      } else if (profileResult.data?._id) {
+        // User object at top level
+        userData = profileResult.data;
+      }
+      
+      console.log('Extracted user data:', userData);
+      
+      if (!userData || !userData._id) {
+        console.error('User data structure issue:', profileResult);
+        setError('User data not found or invalid');
         setLoading(false);
         setPostsLoading(false);
         return;
@@ -136,37 +154,29 @@ export default function ProfilePage() {
       setUser(completeUserData);
 
       // Fetch user posts
-      const userId = userData._id || userData.id || userData.userId;
+      const userId = userData._id;
       
-      if (!userId) {
-        console.warn('User ID not found in profile data:', userData);
+      console.log('Fetching posts for user ID:', userId);
+      
+      const postsResult = await getUserPosts(userId);
+      
+      if (postsResult.success) {
+        const userPosts = postsResult.data?.posts || postsResult.data || [];
+        setPosts(userPosts);
+        
+        setUser(prev => ({
+          ...prev,
+          postsCount: userPosts.length,
+          actualPostsCount: userPosts.length
+        }));
+      } else {
+        console.error('Failed to fetch posts:', postsResult.error);
         setPosts([]);
         setUser(prev => ({
           ...prev,
           postsCount: 0,
           actualPostsCount: 0
         }));
-      } else {
-        const postsResult = await getUserPosts(userId);
-        
-        if (postsResult.success) {
-          const userPosts = postsResult.data.posts || [];
-          setPosts(userPosts);
-          
-          setUser(prev => ({
-            ...prev,
-            postsCount: userPosts.length,
-            actualPostsCount: userPosts.length
-          }));
-        } else {
-          console.error('Failed to fetch posts:', postsResult.error);
-          setPosts([]);
-          setUser(prev => ({
-            ...prev,
-            postsCount: 0,
-            actualPostsCount: 0
-          }));
-        }
       }
 
     } catch (fetchError) {
@@ -557,10 +567,13 @@ function EditProfileModal({ user, onClose, onUpdate }) {
       const result = await updateUserProfile(updateData);
 
       if (result.success) {
-        let updatedUserData = result.data?.user || result.data;
+        // FIXED: Handle nested response structure
+        let updatedUserData = null;
         
-        if (result.data && result.data.user) {
+        if (result.data?.user) {
           updatedUserData = result.data.user;
+        } else if (result.data?._id) {
+          updatedUserData = result.data;
         }
         
         if (!updatedUserData || typeof updatedUserData !== 'object') {
