@@ -1,0 +1,165 @@
+/* feed.module.css - Feed and Post Styles */
+
+/* Feed Container */
+.feedContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.postsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+/* Stories Section */
+.storiesSection {
+  margin-bottom: 24px;
+}
+
+/* Loading States */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #fafafa;
+}
+
+.loadingSpinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #dbdbdb;
+  border-top: 2px solid #262626;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+.loadingSpinner.small {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+  margin-bottom: 0;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.feedLoading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: #8e8e8e;
+}
+
+.feedLoading span {
+  margin-left: 12px;
+}
+
+/* Error States */
+.error {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background-color: #ffeaa7;
+  border: 1px solid #fdcb6e;
+  border-radius: 8px;
+  color: #e17055;
+  margin-bottom: 24px;
+}
+
+.error span {
+  margin-right: 8px;
+}
+
+/* Empty Feed */
+.emptyFeed {
+  text-align: center;
+  padding: 60px 20px;
+  color: #8e8e8e;
+}
+
+.emptyIcon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.emptyFeed h3 {
+  font-size: 22px;
+  font-weight: 300;
+  color: #262626;
+  margin-bottom: 8px;
+}
+
+.emptyFeed p {
+  font-size: 14px;
+  color: #8e8e8e;
+  margin-bottom: 24px;
+}
+
+.createFirstPost {
+  display: inline-block;
+  padding: 8px 24px;
+  background-color: #0095f6;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+.createFirstPost:hover {
+  background-color: #1877f2;
+}
+
+/* Load More */
+.loadMoreContainer {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.loadMoreButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: 1px solid #dbdbdb;
+  background-color: #ffffff;
+  color: #262626;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.loadMoreButton:hover:not(:disabled) {
+  background-color: #f5f5f5;
+}
+
+.loadMoreButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.loadMoreIcon {
+  font-size: 16px;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .postsContainer {
+    gap: 0;
+  }
+}
