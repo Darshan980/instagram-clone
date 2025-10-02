@@ -627,9 +627,14 @@ export default function ProfilePage() {
 
               {/* Bio - Enhanced bio display with proper fallbacks */}
               <div className={styles.bio}>
-                <div className={styles.fullName}>{user.fullName || user.username}</div>
+                <div className={styles.fullName} key={user.fullName}>{user.fullName || user.username}</div>
                 {user.bio && user.bio.trim() !== '' && (
-                  <div className={styles.bioText}>{user.bio}</div>
+                  <div className={styles.bioText} key={user.bio}>{user.bio}</div>
+                )}
+                {(!user.bio || user.bio.trim() === '') && user.isOwnProfile && (
+                  <div className={styles.bioText} style={{ color: '#999', fontStyle: 'italic' }}>
+                    Add a bio to tell people about yourself
+                  </div>
                 )}
               </div>
             </div>
@@ -802,8 +807,9 @@ function EditProfileModal({ user, onClose, onUpdate }) {
       }
 
       console.log('Edit modal updating profile with data:', {
-        fullName: formData.fullName,
-        bio: formData.bio,
+        fullName: formData.fullName.trim(),
+        bio: formData.bio.trim(),
+        bioLength: formData.bio.trim().length,
         hasFile: !!profilePicture
       });
 
@@ -840,6 +846,7 @@ function EditProfileModal({ user, onClose, onUpdate }) {
           id: updatedUserData.id,
           fullName: updatedUserData.fullName,
           bio: updatedUserData.bio,
+          bioLength: updatedUserData.bio?.length || 0,
           profilePicture: updatedUserData.profilePicture
         });
         
