@@ -5,7 +5,8 @@
 }
 
 .mainContainer {
-  max-width: 100vw;
+  max-width: 380px;
+  margin: 0 auto;
   height: 100vh;
   overflow-y: scroll;
   scroll-snap-type: y mandatory;
@@ -21,7 +22,6 @@
   height: 100%;
 }
 
-/* Reel Card - ONE PER PAGE */
 /* Reel Card - ONE PER PAGE */
 .reelCard {
   position: relative;
