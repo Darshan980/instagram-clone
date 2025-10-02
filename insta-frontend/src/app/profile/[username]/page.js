@@ -390,7 +390,7 @@ export default function ProfilePage() {
               {user.isOwnProfile ? (
                 <p>Share your first photo to get started!</p>
               ) : (
-                <p>When {user.username} shares photos, you'll see them here.</p>
+                <p>When {user.username} shares photos, you&apos;ll see them here.</p>
               )}
             </div>
           ) : (
