@@ -11,9 +11,9 @@ import { useDashboard } from './hooks/useDashboard';
 import StoryViewer from '../../components/StoryViewer';
 import PostModal from '../components/PostModal';
 import { isTokenValid, getPost, getPostComments, toggleLikePost, addComment } from '../../utils/auth';
-import layoutStyles from './styles/layout.module.css';
-import sidebarStyles from './styles/sidebar.module.css';
-import rightSidebarStyles from './styles/rightSidebar.module.css';
+import layoutStyles from './layout.module.css';
+import sidebarStyles from './sidebar.module.css';
+import rightSidebarStyles from './rightSidebar.module.css';
 
 export default function Dashboard() {
   const router = useRouter();
