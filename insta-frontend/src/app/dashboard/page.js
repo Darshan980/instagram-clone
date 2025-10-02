@@ -95,16 +95,8 @@ export default function Dashboard() {
     );
   };
 
-  if (loading) {
-    return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingSpinner}></div>
-        <p>Loading your feed...</p>
-      </div>
-    );
-  }
-
-  if (!user) return null;
+  // Removed the loading screen check - page loads immediately
+  if (!user && !loading) return null;
 
   return (
     <div className={styles.container}>
@@ -125,7 +117,6 @@ export default function Dashboard() {
         />
       )}
 
-      {/* Changed from styles.main to styles.dashboardMain */}
       <main className={styles.dashboardMain}>
         <div className={styles.mainContent}>
           <Feed
