@@ -230,8 +230,9 @@
 
 .mainContent {
   width: 100% !important;
-  max-width: none !important;
-  padding: 0 20px;
+  max-width: 630px !important;
+  padding: 0;
+  margin: 0 auto;
 }
 
 /* Full width variant for other pages */
@@ -351,7 +352,7 @@
   display: flex;
   flex-direction: column;
   width: 100% !important;
-  max-width: none !important;
+  max-width: 630px !important;
   margin: 0 auto;
 }
 
