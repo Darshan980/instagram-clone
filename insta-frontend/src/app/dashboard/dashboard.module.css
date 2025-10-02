@@ -218,6 +218,7 @@
 
 /* Main Content - DASHBOARD SPECIFIC (with right sidebar) */
 .dashboardMain {
+  flex: 1;
   margin-left: 245px;
   margin-right: 300px;
   min-height: 100vh;
@@ -228,14 +229,14 @@
 }
 
 .mainContent {
-  max-width: 935px !important;
   width: 100% !important;
-  padding: 0;
+  max-width: none !important;
+  padding: 0 20px;
 }
 
 /* Full width variant for other pages */
 .fullWidth {
-  max-width: 935px;
+  max-width: none;
 }
 
 /* Stories Section */
@@ -349,8 +350,8 @@
 .feedContainer {
   display: flex;
   flex-direction: column;
-  width: 100%!important;
-  max-width: 935px!important;
+  width: 100% !important;
+  max-width: none !important;
   margin: 0 auto;
 }
 
