@@ -1,0 +1,469 @@
+/* rightSidebar.module.css - Right Sidebar Styles */
+
+.rightSidebar {
+  width: 280px;
+  height: 100vh;
+  background-color: transparent;
+  overflow-y: auto;
+  position: sticky;
+  top: 0;
+}
+
+.rightSidebarContent {
+  padding: 30px 20px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Current User Info */
+.currentUserInfo {
+  margin-bottom: 24px;
+}
+
+.userCard {
+  display: flex;
+  align-items: center;
+  padding: 16px 0;
+}
+
+.userAvatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 12px;
+  border: 1px solid #dbdbdb;
+}
+
+.userAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.defaultUserAvatar {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 20px;
+}
+
+.userCardInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.currentUsername {
+  font-weight: 600;
+  font-size: 14px;
+  color: #262626;
+}
+
+.currentUserFullName {
+  font-size: 12px;
+  color: #8e8e8e;
+}
+
+.switchLink {
+  color: #0095f6;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 12px;
+}
+
+.switchLink:hover {
+  color: #1877f2;
+}
+
+/* Follow Suggestions */
+.followSuggestionsSection {
+  flex: 1;
+}
+
+.suggestionsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.suggestionsTitle {
+  font-weight: 600;
+  font-size: 14px;
+  color: #8e8e8e;
+}
+
+.seeAllButton {
+  background: none;
+  border: none;
+  color: #0095f6;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.seeAllButton:hover {
+  color: #1877f2;
+}
+
+.refreshSuggestionsButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #8e8e8e;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+}
+
+.refreshSuggestionsButton:hover {
+  background-color: #f5f5f5;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Suggestions Loading */
+.suggestionsLoading {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.suggestionItemSkeleton {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.skeletonAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  margin-right: 12px;
+  animation: skeleton 1.2s ease-in-out infinite;
+}
+
+.skeletonInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.skeletonUsername {
+  width: 80px;
+  height: 12px;
+  background-color: #f0f0f0;
+  border-radius: 6px;
+  animation: skeleton 1.2s ease-in-out infinite;
+}
+
+.skeletonSubtext {
+  width: 120px;
+  height: 10px;
+  background-color: #f0f0f0;
+  border-radius: 5px;
+  animation: skeleton 1.2s ease-in-out infinite;
+}
+
+.skeletonButton {
+  width: 60px;
+  height: 24px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  animation: skeleton 1.2s ease-in-out infinite;
+}
+
+@keyframes skeleton {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Suggestions Error */
+.suggestionsError {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  text-align: center;
+}
+
+.errorIcon {
+  color: #8e8e8e;
+  margin-bottom: 8px;
+}
+
+.errorText {
+  font-size: 14px;
+  color: #8e8e8e;
+  margin-bottom: 12px;
+}
+
+.retryButton {
+  padding: 6px 12px;
+  background-color: #0095f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.retryButton:hover {
+  background-color: #1877f2;
+}
+
+/* No Suggestions */
+.noSuggestions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  text-align: center;
+}
+
+.emptyText {
+  font-size: 14px;
+  color: #8e8e8e;
+  margin-bottom: 12px;
+}
+
+.refreshButton {
+  padding: 6px 12px;
+  background: none;
+  border: 1px solid #dbdbdb;
+  color: #262626;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.refreshButton:hover {
+  background-color: #f5f5f5;
+}
+
+/* Suggestions List */
+.suggestionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.suggestionItem {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  transition: background-color 0.2s ease;
+}
+
+.suggestionItem:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: 8px;
+  margin: 0 -8px;
+  padding: 8px;
+}
+
+.suggestionAvatar {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 12px;
+  border: 1px solid #dbdbdb;
+}
+
+.suggestionAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.newBadge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 12px;
+  height: 12px;
+  background-color: #ed4956;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffffff;
+}
+
+.newBadge span {
+  color: white;
+  font-size: 8px;
+  font-weight: bold;
+}
+
+.suggestionInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.suggestionHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.suggestionUsername {
+  font-weight: 600;
+  font-size: 14px;
+  color: #262626;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.newUserBadge {
+  background-color: #0095f6;
+  color: white;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 4px;
+  border-radius: 2px;
+  text-transform: uppercase;
+}
+
+.suggestionFullName {
+  font-size: 12px;
+  color: #8e8e8e;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.suggestionSubtext {
+  font-size: 11px;
+  color: #8e8e8e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.suggestionActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.followButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background-color: #0095f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.followButton:hover:not(:disabled) {
+  background-color: #1877f2;
+}
+
+.followButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.followingButton {
+  padding: 6px 12px;
+  background-color: #f0f0f0;
+  color: #262626;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.dismissButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #8e8e8e;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dismissButton:hover {
+  background-color: #f5f5f5;
+  color: #262626;
+}
+
+/* Sidebar Footer */
+.sidebarFooter {
+  margin-top: auto;
+  padding-top: 24px;
+}
+
+.footerLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.footerLinks a {
+  color: #c7c7c7;
+  font-size: 11px;
+  text-decoration: none;
+}
+
+.footerLinks a:hover {
+  color: #8e8e8e;
+}
+
+.copyright {
+  font-size: 11px;
+  color: #c7c7c7;
+}
+
+/* Responsive */
+@media (max-width: 1264px) {
+  .rightSidebar {
+    display: none;
+  }
+}
