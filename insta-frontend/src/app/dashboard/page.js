@@ -1,175 +1,1316 @@
-// dashboard/page.js (Main Component - Full Updated)
-'use client';
+/* dashboard.module.css */
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Sidebar from '../components/layout/Sidebar';
-import CreateSidebar from '../components/layout/CreateSidebar';
-import RightSidebar from '../components/layout/RightSidebar';
-import Feed from './components/Feed';
-import { useDashboard } from './hooks/useDashboard';
-import StoryViewer from '../../components/StoryViewer';
-import PostModal from '../components/PostModal';
-import { isTokenValid, getPost, getPostComments, toggleLikePost, addComment } from '../../utils/auth';
-import styles from './dashboard.module.css';
+/* Container and Layout */
+.container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #fafafa;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
 
-export default function Dashboard() {
-  const router = useRouter();
-  const [showCreateSidebar, setShowCreateSidebar] = useState(false);
-  const [showStoryViewer, setShowStoryViewer] = useState(false);
-  const [selectedStories, setSelectedStories] = useState([]);
-  const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
-  const [isPostModalOpen, setIsPostModalOpen] = useState(false);
-  const [selectedPostId, setSelectedPostId] = useState(null);
+/* Dashboard with sidebar - enables right sidebar only on dashboard */
+.dashboardWithSidebar {
+  /* This class is used as a selector for showing the right sidebar */
+}
 
-  const {
-    user,
-    posts,
-    loading,
-    postsLoading,
-    error,
-    suggestions,
-    suggestionsLoading,
-    suggestionsError,
-    followingStates,
-    showAllSuggestions,
-    setShowAllSuggestions,
-    handleLogout,
-    handleLike,
-    handleAddComment,
-    handleFollow,
-    handleDismiss,
-    loadSuggestions,
-    loadMorePosts,
-    hasMore,
-    loadingMore,
-    commentTexts,
-    handleCommentChange,
-    commentLoading,
-    likeLoading,
-    visiblePosts,
-    setPosts
-  } = useDashboard();
+/* Left Sidebar */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 245px;
+  height: 100vh;
+  background-color: #ffffff;
+  border-right: 1px solid #dbdbdb;
+  z-index: 100;
+  overflow-y: auto;
+}
 
-  // API object for PostModal
-  const api = {
-    getPost,
-    getPostComments,
-    toggleLikePost,
-    addComment
-  };
+.sidebarContent {
+  padding: 8px 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
 
-  useEffect(() => {
-    if (!isTokenValid()) {
-      router.push('/login');
-    }
-  }, [router]);
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+  padding: 25px 25px 16px;
+  margin: 0;
+  color: #262626;
+  font-family: 'Cookie', cursive;
+}
 
-  const handleStoryClick = (storyGroup) => {
-    setSelectedStories(storyGroup.stories);
-    setCurrentStoryIndex(0);
-    setShowStoryViewer(true);
-  };
+.nav {
+  flex: 1;
+  padding: 8px 0;
+}
 
-  const handlePostImageClick = (postId, e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setSelectedPostId(postId);
-    setIsPostModalOpen(true);
-  };
+.navItem {
+  display: flex;
+  align-items: center;
+  padding: 12px 25px;
+  color: #262626;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+  border: none;
+  background: none;
+  width: 100%;
+  cursor: pointer;
+  font-size: 16px;
+}
 
-  const handleModalPostUpdate = (updatedPostData) => {
-    setPosts(prevPosts => 
-      prevPosts.map(post => 
-        post._id === updatedPostData.postId 
-          ? { 
-              ...post, 
-              likes: updatedPostData.likes || post.likes,
-              comments: updatedPostData.comments || post.comments,
-              isLikedByUser: updatedPostData.isLikedByUser !== undefined 
-                ? updatedPostData.isLikedByUser 
-                : post.isLikedByUser,
-            }
-          : post
-      )
-    );
-  };
+.navItem:hover {
+  background-color: #f5f5f5;
+}
 
-  // Page loads immediately without loading screen
-  if (!user && !loading) return null;
+.navItem.active {
+  background-color: #efefef;
+  font-weight: 600;
+}
 
-  return (
-    <div className={`${styles.container} ${styles.dashboardWithSidebar}`}>
-      <Sidebar
-        user={user}
-        onLogout={handleLogout}
-        onCreateClick={() => setShowCreateSidebar(true)}
-        showCreateActive={showCreateSidebar}
-      />
+.navIcon {
+  font-size: 24px;
+  margin-right: 16px;
+  width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-      {showCreateSidebar && (
-        <CreateSidebar
-          onClose={() => setShowCreateSidebar(false)}
-          onOptionClick={(path) => {
-            router.push(path);
-            setShowCreateSidebar(false);
-          }}
-        />
-      )}
+.navIconContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+}
 
-      <main className={styles.dashboardMain}>
-        <div className={styles.mainContent}>
-          <Feed
-            posts={posts}
-            postsLoading={postsLoading}
-            error={error}
-            user={user}
-            onStoryClick={handleStoryClick}
-            onPostImageClick={handlePostImageClick}
-            onLike={handleLike}
-            onAddComment={handleAddComment}
-            commentTexts={commentTexts}
-            onCommentChange={handleCommentChange}
-            commentLoading={commentLoading}
-            likeLoading={likeLoading}
-            hasMore={hasMore}
-            loadingMore={loadingMore}
-            onLoadMore={loadMorePosts}
-            visiblePosts={visiblePosts}
-          />
-        </div>
-      </main>
+.navText {
+  font-size: 16px;
+  font-weight: 400;
+}
 
-      <RightSidebar
-        user={user}
-        suggestions={suggestions}
-        suggestionsLoading={suggestionsLoading}
-        suggestionsError={suggestionsError}
-        followingStates={followingStates}
-        showAllSuggestions={showAllSuggestions}
-        onToggleShowAll={() => setShowAllSuggestions(!showAllSuggestions)}
-        onRefresh={() => loadSuggestions(true)}
-        onFollow={handleFollow}
-        onDismiss={handleDismiss}
-      />
+.createButton.active {
+  background-color: #efefef;
+}
 
-      {showStoryViewer && (
-        <StoryViewer
-          stories={selectedStories}
-          currentIndex={currentStoryIndex}
-          onClose={() => setShowStoryViewer(false)}
-          onNext={setCurrentStoryIndex}
-          onPrevious={setCurrentStoryIndex}
-        />
-      )}
+.sidebarBottom {
+  padding: 8px 0;
+  border-top: 1px solid #efefef;
+}
 
-      <PostModal
-        postId={selectedPostId}
-        isOpen={isPostModalOpen}
-        onClose={() => setIsPostModalOpen(false)}
-        onUpdate={handleModalPostUpdate}
-        api={api}
-      />
-    </div>
-  );
+.logoutButton {
+  display: flex;
+  align-items: center;
+  padding: 12px 25px;
+  color: #262626;
+  border: none;
+  background: none;
+  width: 100%;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s ease;
+}
+
+.logoutButton:hover {
+  background-color: #f5f5f5;
+}
+
+/* Create Sidebar */
+.createOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  z-index: 150;
+}
+
+.createSidebar {
+  position: fixed;
+  left: 245px;
+  top: 0;
+  width: 300px;
+  height: 100vh;
+  background-color: #ffffff;
+  border-right: 1px solid #dbdbdb;
+  z-index: 200;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.createSidebarContent {
+  padding: 0;
+  height: 100%;
+}
+
+.createHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #efefef;
+}
+
+.createHeader h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #8e8e8e;
+  padding: 4px;
+}
+
+.createOptions {
+  padding: 8px 0;
+}
+
+.createOption {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  width: 100%;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.createOption:hover {
+  background-color: #f5f5f5;
+}
+
+.createIcon {
+  font-size: 24px;
+  margin-right: 16px;
+  width: 24px;
+}
+
+.createOptionText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.createOptionTitle {
+  font-size: 16px;
+  font-weight: 400;
+  color: #262626;
+  margin-bottom: 2px;
+}
+
+.createOptionDesc {
+  font-size: 12px;
+  color: #8e8e8e;
+}
+
+/* Main Content - DEFAULT (for other pages like Search - full width) */
+.main {
+  flex: 1;
+  margin-left: 245px;
+  margin-right: 0;
+  min-height: 100vh;
+  width: 100%;
+  padding: 20px;
+}
+
+/* Main Content - DASHBOARD SPECIFIC (with right sidebar) */
+.dashboardMain {
+  flex: 1;
+  margin-left: 245px;
+  margin-right: 300px;
+  min-height: 100vh;
+  background-color: #fafafa;
+  padding-top: 30px;
+  display: flex;
+  justify-content: center;
+}
+
+.mainContent {
+  width: 100% !important;
+  max-width: 630px !important;
+  padding: 0;
+  margin: 0 auto;
+}
+
+/* Full width variant for other pages */
+.fullWidth {
+  max-width: none;
+}
+
+/* Stories Section */
+.storiesSection {
+  margin-bottom: 24px;
+}
+
+/* Loading States */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #fafafa;
+}
+
+.loadingSpinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #dbdbdb;
+  border-top: 2px solid #262626;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+.loadingSpinner.small {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+  margin-bottom: 0;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.feedLoading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: #8e8e8e;
+}
+
+.feedLoading span {
+  margin-left: 12px;
+}
+
+/* Error States */
+.error {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background-color: #ffeaa7;
+  border: 1px solid #fdcb6e;
+  border-radius: 8px;
+  color: #e17055;
+  margin-bottom: 24px;
+}
+
+.error span {
+  margin-right: 8px;
+}
+
+/* Empty Feed */
+.emptyFeed {
+  text-align: center;
+  padding: 60px 20px;
+  color: #8e8e8e;
+}
+
+.emptyIcon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.emptyFeed h3 {
+  font-size: 22px;
+  font-weight: 300;
+  color: #262626;
+  margin-bottom: 8px;
+}
+
+.emptyFeed p {
+  font-size: 14px;
+  color: #8e8e8e;
+  margin-bottom: 24px;
+}
+
+.createFirstPost {
+  display: inline-block;
+  padding: 8px 24px;
+  background-color: #0095f6;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+.createFirstPost:hover {
+  background-color: #1877f2;
+}
+
+/* Feed Container */
+.feedContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100% !important;
+  max-width: 630px !important;
+  margin: 0 auto;
+}
+
+.postsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+/* Post Styles */
+.post {
+  background-color: #ffffff;
+  border: 1px solid #dbdbdb;
+  border-radius: 8px;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.postVisible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.postHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #efefef;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 12px;
+  border: 1px solid #dbdbdb;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.defaultAvatar {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.userDetails {
+  display: flex;
+  flex-direction: column;
+}
+
+.username {
+  font-weight: 600;
+  font-size: 14px;
+  color: #262626;
+}
+
+.location {
+  font-size: 11px;
+  color: #8e8e8e;
+}
+
+.postTime {
+  font-size: 11px;
+  color: #8e8e8e;
+}
+
+/* Post Image */
+.postImage {
+  position: relative;
+  width: 100%;
+  max-height: 600px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.postImage img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.imageOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(transparent 0%, transparent 100%);
+  pointer-events: none;
+}
+
+/* Post Actions */
+.postActions {
+  padding: 6px 16px;
+}
+
+.actionButtons {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.actionButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.actionButton:hover {
+  background-color: #f5f5f5;
+}
+
+.buttonIcon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.heartIcon {
+  width: 24px;
+  height: 24px;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.heartFilled {
+  animation: heartBeat 0.3s ease-in-out;
+}
+
+@keyframes heartBeat {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+.commentIcon, .shareIcon {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: #262626;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.likeButton.liked .heartIcon {
+  fill: #ed4956;
+  stroke: #ed4956;
+}
+
+.loadingIcon {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #dbdbdb;
+  border-top: 2px solid #262626;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Post Stats */
+.postStats {
+  padding: 0 16px 8px;
+}
+
+.likesCount {
+  font-size: 14px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.countNumber {
+  font-weight: 600;
+}
+
+/* Post Caption */
+.postCaption {
+  padding: 0 16px 8px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.postCaption .username {
+  font-weight: 600;
+  color: #262626;
+  margin-right: 8px;
+}
+
+.captionText {
+  color: #262626;
+}
+
+/* Post Tags */
+.postTags {
+  padding: 0 16px 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  color: #1877f2;
+  font-size: 14px;
+  opacity: 0;
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Comments Section */
+.commentsSection {
+  padding: 0 16px 12px;
+}
+
+.comments {
+  margin-bottom: 8px;
+}
+
+.comment {
+  display: flex;
+  margin-bottom: 4px;
+  font-size: 14px;
+  opacity: 0;
+  animation: slideIn 0.3s ease forwards;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.commentUsername {
+  font-weight: 600;
+  color: #262626;
+  margin-right: 8px;
+}
+
+.commentText {
+  color: #262626;
+  word-break: break-word;
+}
+
+.viewAllComments {
+  background: none;
+  border: none;
+  color: #8e8e8e;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 8px;
+}
+
+.viewAllComments:hover {
+  color: #262626;
+}
+
+/* Add Comment */
+.addComment {
+  display: flex;
+  align-items: center;
+  border-top: 1px solid #efefef;
+  padding-top: 12px;
+  margin-top: 8px;
+}
+
+.commentInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  background: transparent;
+  color: #262626;
+  padding: 0;
+}
+
+.commentInput::placeholder {
+  color: #8e8e8e;
+}
+
+.postCommentButton {
+  background: none;
+  border: none;
+  color: #0095f6;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.postCommentButton:disabled {
+  color: #8e8e8e;
+  cursor: not-allowed;
+}
+
+.loadingDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: #0095f6;
+  animation: loadingDots 1.4s infinite ease-in-out both;
+}
+
+@keyframes loadingDots {
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Load More */
+.loadMoreContainer {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.loadMoreButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: 1px solid #dbdbdb;
+  background-color: #ffffff;
+  color: #262626;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.loadMoreButton:hover:not(:disabled) {
+  background-color: #f5f5f5;
+}
+
+.loadMoreButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.loadMoreIcon {
+  font-size: 16px;
+}
+
+/* Right Sidebar - Only visible on dashboard */
+.rightSidebar {
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 280px;
+  height: 100vh;
+  background-color: transparent;
+  overflow-y: auto;
+  display: none; /* Hidden by default */
+}
+
+/* Show right sidebar only when parent has dashboardWithSidebar class */
+.dashboardWithSidebar .rightSidebar {
+  display: block;
+}
+
+.rightSidebarContent {
+  padding: 30px 20px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Current User Info */
+.currentUserInfo {
+  margin-bottom: 24px;
+}
+
+.userCard {
+  display: flex;
+  align-items: center;
+  padding: 16px 0;
+}
+
+.userAvatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 12px;
+  border: 1px solid #dbdbdb;
+}
+
+.userAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.defaultUserAvatar {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 20px;
+}
+
+.userCardInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.currentUsername {
+  font-weight: 600;
+  font-size: 14px;
+  color: #262626;
+}
+
+.currentUserFullName {
+  font-size: 12px;
+  color: #8e8e8e;
+}
+
+.switchLink {
+  color: #0095f6;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 12px;
+}
+
+.switchLink:hover {
+  color: #1877f2;
+}
+
+/* Follow Suggestions */
+.followSuggestionsSection {
+  flex: 1;
+}
+
+.suggestionsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.suggestionsTitle {
+  font-weight: 600;
+  font-size: 14px;
+  color: #8e8e8e;
+}
+
+.seeAllButton {
+  background: none;
+  border: none;
+  color: #0095f6;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.seeAllButton:hover {
+  color: #1877f2;
+}
+
+.refreshSuggestionsButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #8e8e8e;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+}
+
+.refreshSuggestionsButton:hover {
+  background-color: #f5f5f5;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+/* Suggestions Loading */
+.suggestionsLoading {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.suggestionItemSkeleton {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.skeletonAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  margin-right: 12px;
+  animation: skeleton 1.2s ease-in-out infinite;
+}
+
+.skeletonInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.skeletonUsername {
+  width: 80px;
+  height: 12px;
+  background-color: #f0f0f0;
+  border-radius: 6px;
+  animation: skeleton 1.2s ease-in-out infinite;
+}
+
+.skeletonSubtext {
+  width: 120px;
+  height: 10px;
+  background-color: #f0f0f0;
+  border-radius: 5px;
+  animation: skeleton 1.2s ease-in-out infinite;
+}
+
+.skeletonButton {
+  width: 60px;
+  height: 24px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  animation: skeleton 1.2s ease-in-out infinite;
+}
+
+@keyframes skeleton {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Suggestions Error */
+.suggestionsError {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  text-align: center;
+}
+
+.errorIcon {
+  color: #8e8e8e;
+  margin-bottom: 8px;
+}
+
+.errorText {
+  font-size: 14px;
+  color: #8e8e8e;
+  margin-bottom: 12px;
+}
+
+.retryButton {
+  padding: 6px 12px;
+  background-color: #0095f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.retryButton:hover {
+  background-color: #1877f2;
+}
+
+/* No Suggestions */
+.noSuggestions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  text-align: center;
+}
+
+.emptyText {
+  font-size: 14px;
+  color: #8e8e8e;
+  margin-bottom: 12px;
+}
+
+.refreshButton {
+  padding: 6px 12px;
+  background: none;
+  border: 1px solid #dbdbdb;
+  color: #262626;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.refreshButton:hover {
+  background-color: #f5f5f5;
+}
+
+/* Suggestions List */
+.suggestionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.suggestionItem {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  transition: background-color 0.2s ease;
+}
+
+.suggestionItem:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: 8px;
+  margin: 0 -8px;
+  padding: 8px;
+}
+
+.suggestionAvatar {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 12px;
+  border: 1px solid #dbdbdb;
+}
+
+.suggestionAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.newBadge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 12px;
+  height: 12px;
+  background-color: #ed4956;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffffff;
+}
+
+.newBadge span {
+  color: white;
+  font-size: 8px;
+  font-weight: bold;
+}
+
+.suggestionInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.suggestionHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.suggestionUsername {
+  font-weight: 600;
+  font-size: 14px;
+  color: #262626;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.newUserBadge {
+  background-color: #0095f6;
+  color: white;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 4px;
+  border-radius: 2px;
+  text-transform: uppercase;
+}
+
+.suggestionFullName {
+  font-size: 12px;
+  color: #8e8e8e;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.suggestionSubtext {
+  font-size: 11px;
+  color: #8e8e8e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.suggestionActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.followButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background-color: #0095f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.followButton:hover:not(:disabled) {
+  background-color: #1877f2;
+}
+
+.followButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.followingButton {
+  padding: 6px 12px;
+  background-color: #f0f0f0;
+  color: #262626;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.dismissButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #8e8e8e;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dismissButton:hover {
+  background-color: #f5f5f5;
+  color: #262626;
+}
+
+/* Sidebar Footer */
+.sidebarFooter {
+  margin-top: auto;
+  padding-top: 24px;
+}
+
+.footerLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.footerLinks a {
+  color: #c7c7c7;
+  font-size: 11px;
+  text-decoration: none;
+}
+
+.footerLinks a:hover {
+  color: #8e8e8e;
+}
+
+.copyright {
+  font-size: 11px;
+  color: #c7c7c7;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .rightSidebar {
+    display: none;
+  }
+  
+  .dashboardMain {
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 72px;
+  }
+  
+  .navText {
+    display: none;
+  }
+  
+  .logo {
+    font-size: 0;
+    padding: 25px 12px 16px;
+  }
+  
+  .logo::after {
+    content: "📷";
+    font-size: 24px;
+  }
+  
+  .navItem {
+    padding: 12px;
+    justify-content: center;
+  }
+  
+  .navIcon {
+    margin-right: 0;
+  }
+  
+  .main,
+  .dashboardMain {
+    margin-left: 72px;
+  }
+  
+  .mainContent {
+    padding: 20px 12px;
+  }
+  
+  .createSidebar {
+    left: 72px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    display: none;
+  }
+  
+  .main,
+  .dashboardMain {
+    margin-left: 0;
+  }
+  
+  .mainContent {
+    padding: 12px;
+  }
+  
+  .post {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+  
+  .postsContainer {
+    gap: 0;
+  }
+}
+
+/* Accessibility - Applied to specific classes that use animations */
+@media (prefers-reduced-motion: reduce) {
+  .post,
+  .postVisible,
+  .heartIcon,
+  .heartFilled,
+  .loadingSpinner,
+  .spinning,
+  .tag,
+  .comment,
+  .skeletonAvatar,
+  .skeletonUsername,
+  .skeletonSubtext,
+  .skeletonButton {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
