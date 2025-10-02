@@ -816,10 +816,26 @@ function EditProfileModal({ user, onClose, onUpdate }) {
 
       const result = await updateUserProfile(updateData);
       console.log('Edit modal update result:', result);
+      console.log('Server returned user data:', result.data);
 
       if (result.success) {
         // FIXED: Ensure proper data structure with ID mapping for the modal update
         let updatedUserData = result.data.user || result.data;
+        
+        console.log('Raw updated user data from server:', {
+          fullName: updatedUserData?.fullName,
+          bio: updatedUserData?.bio,
+          bioLength: updatedUserData?.bio?.length,
+          profilePicture: updatedUserData?.profilePicture
+        });
+        
+        // CRITICAL FIX: If server doesn't return bio/picture, use our local values
+        if (!updatedUserData || !updatedUserData.bio) {
+          console.warn('⚠️ Server did not return bio, using local form data');
+        }
+        if (!updatedUserData || !updatedUserData.profilePicture) {
+          console.warn('⚠️ Server did not return profilePicture');
+        }
         
         if (!updatedUserData) {
           updatedUserData = {
@@ -829,10 +845,15 @@ function EditProfileModal({ user, onClose, onUpdate }) {
             profilePicture: profilePicturePreview || user.profilePicture
           };
         } else {
-          // If we uploaded a new picture and have a preview, ensure it's used
-          if (profilePicturePreview && !updatedUserData.profilePicture) {
-            updatedUserData.profilePicture = profilePicturePreview;
-          }
+          // Merge server data with local form data for fields that might be missing
+          updatedUserData = {
+            ...updatedUserData,
+            // Use server data if available, otherwise use form data
+            fullName: updatedUserData.fullName || formData.fullName.trim(),
+            bio: updatedUserData.bio !== undefined ? updatedUserData.bio : formData.bio.trim(),
+            // Use preview if we just uploaded, otherwise use server data or keep existing
+            profilePicture: profilePicturePreview || updatedUserData.profilePicture || user.profilePicture
+          };
         }
         
         // FIXED: Ensure proper ID mapping
