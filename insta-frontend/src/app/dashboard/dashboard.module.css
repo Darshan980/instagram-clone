@@ -219,7 +219,7 @@
 /* Main Content - DASHBOARD SPECIFIC (with right sidebar) */
 .dashboardMain {
   margin-left: 245px;
-  margin-right: 320px;
+  margin-right: 300px;
   min-height: 100vh;
   background-color: #fafafa;
   padding-top: 30px;
@@ -350,7 +350,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 470px;
+  max-width: 935px;
   margin: 0 auto;
 }
 
@@ -749,7 +749,7 @@
   position: fixed;
   right: 0;
   top: 0;
-  width: 320px;
+  width: 280px;
   height: 100vh;
   background-color: transparent;
   overflow-y: auto;
