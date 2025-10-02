@@ -40,6 +40,8 @@ const normalizeUserData = (userData) => {
 
 // Reducer for complex state management
 const profileReducer = (state, action) => {
+  console.log('🔧 Reducer action:', action.type, action.payload ? '(with payload)' : '');
+  
   switch (action.type) {
     case 'FETCH_START':
       return {
@@ -50,7 +52,7 @@ const profileReducer = (state, action) => {
       };
     
     case 'FETCH_SUCCESS':
-      return {
+      const newState = {
         ...state,
         user: normalizeUserData(action.payload.user),
         posts: action.payload.posts || [],
@@ -58,6 +60,12 @@ const profileReducer = (state, action) => {
         postsLoading: false,
         error: '',
       };
+      console.log('✅ FETCH_SUCCESS - New user:', {
+        username: newState.user?.username,
+        fullName: newState.user?.fullName,
+        postsCount: newState.posts.length
+      });
+      return newState;
     
     case 'FETCH_ERROR':
       return {
@@ -68,14 +76,25 @@ const profileReducer = (state, action) => {
       };
     
     case 'UPDATE_USER':
+      const updatedUser = normalizeUserData({
+        ...state.user,
+        ...action.payload,
+        // Preserve counts
+        postsCount: state.posts.length || state.user?.postsCount || 0,
+      });
+      console.log('🔄 UPDATE_USER - Before/After:', {
+        before: {
+          fullName: state.user?.fullName,
+          bio: state.user?.bio
+        },
+        after: {
+          fullName: updatedUser.fullName,
+          bio: updatedUser.bio
+        }
+      });
       return {
         ...state,
-        user: normalizeUserData({
-          ...state.user,
-          ...action.payload,
-          // Preserve counts
-          postsCount: state.posts.length || state.user?.postsCount || 0,
-        }),
+        user: updatedUser,
       };
     
     case 'TOGGLE_FOLLOW':
@@ -153,13 +172,16 @@ export default function ProfilePage() {
   const fetchProfileData = useCallback(async () => {
     if (!username) return;
     
+    console.log('🔍 Fetching profile data for:', username);
     dispatch({ type: 'FETCH_START' });
     
     try {
       // Fetch profile
       const profileResult = await getUserProfile(username);
+      console.log('📥 Profile API response:', profileResult);
       
       if (!profileResult.success) {
+        console.error('❌ Profile fetch failed:', profileResult.error);
         dispatch({ 
           type: 'FETCH_ERROR', 
           payload: profileResult.error || 'Failed to load profile' 
@@ -168,10 +190,17 @@ export default function ProfilePage() {
       }
 
       const userData = normalizeUserData(profileResult.data.user);
+      console.log('✅ Normalized user data:', {
+        id: userData.id,
+        username: userData.username,
+        fullName: userData.fullName,
+        bio: userData.bio
+      });
       
       // Fetch posts
       const postsResult = await getUserPosts(userData.id);
       const posts = postsResult.success ? (postsResult.data.posts || []) : [];
+      console.log('📝 Fetched posts:', posts.length);
       
       dispatch({ 
         type: 'FETCH_SUCCESS', 
@@ -179,7 +208,7 @@ export default function ProfilePage() {
       });
       
     } catch (error) {
-      console.error('Profile fetch error:', error);
+      console.error('💥 Profile fetch exception:', error);
       dispatch({ 
         type: 'FETCH_ERROR', 
         payload: 'Failed to load profile: ' + error.message 
@@ -190,16 +219,38 @@ export default function ProfilePage() {
   // Initial data load
   useEffect(() => {
     if (username) {
+      console.log('🔄 Initial fetch triggered for username:', username);
       fetchProfileData();
     }
   }, [username, fetchProfileData]);
 
+  // Debug: Log state changes
+  useEffect(() => {
+    console.log('📊 Profile State Updated:', {
+      hasUser: !!state.user,
+      username: state.user?.username,
+      fullName: state.user?.fullName,
+      bio: state.user?.bio,
+      postsCount: state.posts.length,
+      loading: state.loading
+    });
+  }, [state]);
+
   // Unified profile update handler
   const handleProfileUpdateEvent = useCallback((updatedData) => {
-    console.log('Profile update received:', updatedData);
+    console.log('🔔 Profile update event received:', {
+      hasData: !!updatedData,
+      username: updatedData?.username,
+      fullName: updatedData?.fullName,
+      bio: updatedData?.bio
+    });
     
-    if (!updatedData || !username) return;
+    if (!updatedData || !username) {
+      console.log('⚠️ Ignoring update - missing data or username');
+      return;
+    }
     
+    console.log('✨ Dispatching UPDATE_USER action');
     dispatch({ type: 'UPDATE_USER', payload: updatedData });
   }, [username]);
 
@@ -552,6 +603,12 @@ function EditProfileModal({ user, onClose, onUpdate }) {
       return;
     }
 
+    console.log('💾 Submitting profile update:', {
+      fullName: formData.fullName,
+      bio: formData.bio,
+      hasProfilePicture: !!profilePicture
+    });
+
     setLoading(true);
     setError('');
 
@@ -565,21 +622,29 @@ function EditProfileModal({ user, onClose, onUpdate }) {
       }
 
       const result = await updateUserProfile(updateData);
+      console.log('📡 Update API response:', result);
 
       if (result.success) {
         const updatedUser = normalizeUserData(
           result.data.user || {
             ...user,
             ...formData,
+            fullName: formData.fullName.trim(),
+            bio: formData.bio.trim(),
             profilePicture: preview || user.profilePicture
           }
         );
+        console.log('✅ Calling onUpdate with:', {
+          fullName: updatedUser.fullName,
+          bio: updatedUser.bio
+        });
         onUpdate(updatedUser);
       } else {
+        console.error('❌ Update failed:', result.error);
         setError(result.error || 'Failed to update profile');
       }
     } catch (error) {
-      console.error('Profile update error:', error);
+      console.error('💥 Profile update exception:', error);
       setError('Failed to update profile');
     } finally {
       setLoading(false);
