@@ -8,6 +8,11 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
+/* Dashboard with sidebar - enables right sidebar only on dashboard */
+.dashboardWithSidebar {
+  /* This class is used as a selector for showing the right sidebar */
+}
+
 /* Left Sidebar */
 .sidebar {
   position: fixed;
