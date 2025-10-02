@@ -22,6 +22,7 @@
 }
 
 /* Reel Card - ONE PER PAGE */
+/* Reel Card - ONE PER PAGE */
 .reelCard {
   position: relative;
   width: 100%;
@@ -35,10 +36,10 @@
 
 .video {
   width: 100%;
-  max-width: 500px;
+  max-width: 380px;
   height: 100%;
   max-height: 100vh;
-  object-fit: contain;
+  object-fit: cover;
   cursor: pointer;
 }
 
