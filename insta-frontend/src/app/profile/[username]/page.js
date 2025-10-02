@@ -107,14 +107,21 @@ export default function ProfilePage() {
       
       const profileResult = await getUserProfile(username);
       
-      if (!profileResult.success) {
+      if (!profileResult.success || !profileResult.data) {
         setError(profileResult.error || 'Failed to load profile');
         setLoading(false);
         setPostsLoading(false);
         return;
       }
 
-      const userData = profileResult.data.user;
+      const userData = profileResult.data.user || profileResult.data;
+      
+      if (!userData) {
+        setError('User data not found');
+        setLoading(false);
+        setPostsLoading(false);
+        return;
+      }
       
       const completeUserData = {
         ...userData,
