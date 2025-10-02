@@ -228,8 +228,8 @@
 }
 
 .mainContent {
-  max-width: 935px;
-  width: 100%;
+  max-width: 935px !important;
+  width: 100% !important;
   padding: 0;
 }
 
@@ -349,8 +349,8 @@
 .feedContainer {
   display: flex;
   flex-direction: column;
-  width: 100%;
-  max-width: 935px;
+  width: 100%!important;
+  max-width: 935px!important;
   margin: 0 auto;
 }
 
