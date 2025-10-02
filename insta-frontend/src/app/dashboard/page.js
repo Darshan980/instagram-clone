@@ -1,4 +1,4 @@
-// dashboard/page.js
+// dashboard/page.js (Main Component - Updated)
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -11,10 +11,98 @@ import { useDashboard } from './hooks/useDashboard';
 import StoryViewer from '../../components/StoryViewer';
 import PostModal from '../components/PostModal';
 import { isTokenValid, getPost, getPostComments, toggleLikePost, addComment } from '../../utils/auth';
-import styles from './dashboard.module.css'; // Original CSS file
+import styles from './dashboard.module.css';
 
 export default function Dashboard() {
-  // ... all your hooks and state ...
+  const router = useRouter();
+  const [showCreateSidebar, setShowCreateSidebar] = useState(false);
+  const [showStoryViewer, setShowStoryViewer] = useState(false);
+  const [selectedStories, setSelectedStories] = useState([]);
+  const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
+  const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+  const [selectedPostId, setSelectedPostId] = useState(null);
+
+  const {
+    user,
+    posts,
+    loading,
+    postsLoading,
+    error,
+    suggestions,
+    suggestionsLoading,
+    suggestionsError,
+    followingStates,
+    showAllSuggestions,
+    setShowAllSuggestions,
+    handleLogout,
+    handleLike,
+    handleAddComment,
+    handleFollow,
+    handleDismiss,
+    loadSuggestions,
+    loadMorePosts,
+    hasMore,
+    loadingMore,
+    commentTexts,
+    handleCommentChange,
+    commentLoading,
+    likeLoading,
+    visiblePosts,
+    setPosts
+  } = useDashboard();
+
+  // API object for PostModal
+  const api = {
+    getPost,
+    getPostComments,
+    toggleLikePost,
+    addComment
+  };
+
+  useEffect(() => {
+    if (!isTokenValid()) {
+      router.push('/login');
+    }
+  }, [router]);
+
+  const handleStoryClick = (storyGroup) => {
+    setSelectedStories(storyGroup.stories);
+    setCurrentStoryIndex(0);
+    setShowStoryViewer(true);
+  };
+
+  const handlePostImageClick = (postId, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedPostId(postId);
+    setIsPostModalOpen(true);
+  };
+
+  const handleModalPostUpdate = (updatedPostData) => {
+    setPosts(prevPosts => 
+      prevPosts.map(post => 
+        post._id === updatedPostData.postId 
+          ? { 
+              ...post, 
+              likes: updatedPostData.likes || post.likes,
+              comments: updatedPostData.comments || post.comments,
+              isLikedByUser: updatedPostData.isLikedByUser !== undefined 
+                ? updatedPostData.isLikedByUser 
+                : post.isLikedByUser,
+            }
+          : post
+      )
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingSpinner}></div>
+        <p>Loading your feed...</p>
+      </div>
+    );
+  }
 
   if (!user) return null;
 
@@ -37,6 +125,7 @@ export default function Dashboard() {
         />
       )}
 
+      {/* Changed from styles.main to styles.dashboardMain */}
       <main className={styles.dashboardMain}>
         <div className={styles.mainContent}>
           <Feed
@@ -73,7 +162,6 @@ export default function Dashboard() {
         onDismiss={handleDismiss}
       />
 
-      {/* Modals */}
       {showStoryViewer && (
         <StoryViewer
           stories={selectedStories}
