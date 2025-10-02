@@ -10,6 +10,13 @@ const { createNotification } = require('../schema/notification.js');
 const router = express.Router();
 
 // ============================
+// BASE URL CONFIGURATION
+// ============================
+const getBaseUrl = () => {
+  return process.env.BASE_URL || 'https://instagram-clone-0t5v.onrender.com';
+};
+
+// ============================
 // MULTER CONFIGURATION FOR FILE UPLOADS
 // ============================
 
@@ -343,10 +350,10 @@ router.put('/profile', authenticateToken, upload.single('profilePicture'), async
       updateData.bio = bio.trim();
     }
 
-    // Handle profile picture upload
+    // Handle profile picture upload - FIXED: Use absolute URL
     if (req.file) {
-      // Generate URL for the uploaded file
-      updateData.profilePicture = `/uploads/profiles/${req.file.filename}`;
+      const baseUrl = getBaseUrl();
+      updateData.profilePicture = `${baseUrl}/uploads/profiles/${req.file.filename}`;
       console.log('Profile picture URL:', updateData.profilePicture);
     }
 
