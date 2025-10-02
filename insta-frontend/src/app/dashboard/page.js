@@ -1,4 +1,4 @@
-// dashboard/page.js (Main Component - Updated)
+// dashboard/page.js (Main Component - Full Updated)
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -95,11 +95,11 @@ export default function Dashboard() {
     );
   };
 
-  // Removed the loading screen check - page loads immediately
+  // Page loads immediately without loading screen
   if (!user && !loading) return null;
 
   return (
-    <div className={styles.container}>
+    <div className={`${styles.container} ${styles.dashboardWithSidebar}`}>
       <Sidebar
         user={user}
         onLogout={handleLogout}
