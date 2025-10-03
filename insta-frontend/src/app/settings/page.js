@@ -1,7 +1,121 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import { settingsAPI } from '../../utils/settings';
-import './settings.css';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000/api';
+
+// Settings API Class
+class SettingsAPI {
+  constructor() {
+    this.token = null;
+    this.baseURL = `${API_BASE_URL}/users`;
+    this.authURL = `${API_BASE_URL}/auth`;
+  }
+
+  setToken(token) {
+    this.token = token;
+  }
+
+  getAuthHeaders() {
+    const headers = { 'Content-Type': 'application/json' };
+    if (this.token) headers['Authorization'] = `Bearer ${this.token}`;
+    return headers;
+  }
+
+  getMultipartHeaders() {
+    const headers = {};
+    if (this.token) headers['Authorization'] = `Bearer ${this.token}`;
+    return headers;
+  }
+
+  async makeRequest(url, options = {}) {
+    try {
+      const config = { headers: this.getAuthHeaders(), ...options };
+      const response = await fetch(url, config);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      if (error.message.includes('fetch')) throw new Error('Network error');
+      if (error.message.includes('401')) throw new Error('Authentication failed');
+      throw error;
+    }
+  }
+
+  async getProfile() {
+    try {
+      const response = await fetch(`${this.authURL}/me`, {
+        headers: this.getAuthHeaders()
+      });
+      if (response.ok) return await response.json();
+      
+      if (this.token) {
+        const payload = JSON.parse(atob(this.token.split('.')[1]));
+        const userId = payload._id || payload.id || payload.userId;
+        if (userId) return await this.makeRequest(`${this.baseURL}/${userId}`, { method: 'GET' });
+      }
+      throw new Error('Could not load profile');
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateProfile(formData) {
+    try {
+      const config = {
+        method: 'PUT',
+        headers: this.getMultipartHeaders(),
+        body: formData
+      };
+      const response = await fetch(`${this.baseURL}/profile`, config);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      if (error.message.includes('fetch')) throw new Error('Network error');
+      if (error.message.includes('401')) throw new Error('Authentication failed');
+      throw error;
+    }
+  }
+
+  async updateAccount(accountData) {
+    return await this.makeRequest(`${this.baseURL}/account`, {
+      method: 'PUT',
+      body: JSON.stringify(accountData)
+    });
+  }
+
+  async updatePrivacy(privacyData) {
+    return await this.makeRequest(`${this.baseURL}/privacy`, {
+      method: 'PUT',
+      body: JSON.stringify(privacyData)
+    });
+  }
+
+  async updateNotifications(notificationData) {
+    return await this.makeRequest(`${this.baseURL}/notifications`, {
+      method: 'PUT',
+      body: JSON.stringify(notificationData)
+    });
+  }
+
+  async changePassword(currentPassword, newPassword) {
+    return await this.makeRequest(`${this.authURL}/change-password`, {
+      method: 'PUT',
+      body: JSON.stringify({ currentPassword, newPassword, confirmNewPassword: newPassword })
+    });
+  }
+
+  async deactivateAccount() {
+    return await this.makeRequest(`${this.baseURL}/deactivate`, { method: 'POST' });
+  }
+}
+
+const settingsAPI = new SettingsAPI();
 
 export default function SettingsPage() {
   const [user, setUser] = useState(null);
@@ -12,16 +126,14 @@ export default function SettingsPage() {
   const [profilePictureFile, setProfilePictureFile] = useState(null);
 
   const [accountForm, setAccountForm] = useState({
+    username: '',
+    email: '',
     fullName: '',
     bio: '',
     website: '',
     phoneNumber: '',
     gender: ''
   });
-
-  // Separate form for username (read-only display)
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
 
   const [privacyForm, setPrivacyForm] = useState({
     isPrivate: false,
@@ -61,11 +173,7 @@ export default function SettingsPage() {
 
   const loadUserData = useCallback(async () => {
     try {
-      console.log('Loading user data...');
-      
-      if (typeof window === 'undefined') {
-        return;
-      }
+      if (typeof window === 'undefined') return;
       
       const token = localStorage.getItem('instagram_token') || 
                     localStorage.getItem('authToken') || 
@@ -93,15 +201,13 @@ export default function SettingsPage() {
       if (response.success || response.user) {
         const userData = response.user || response.data?.user || response.data;
         
-        if (!userData) {
-          throw new Error('No user data in response');
-        }
+        if (!userData) throw new Error('No user data in response');
         
         setUser(userData);
-        setUsername(userData.username || '');
-        setEmail(userData.email || '');
         
         setAccountForm({
+          username: userData.username || '',
+          email: userData.email || '',
           fullName: userData.fullName || '',
           bio: userData.bio || '',
           website: userData.website || '',
@@ -123,7 +229,6 @@ export default function SettingsPage() {
           mentions: userData.settings?.notifications?.mentions ?? true,
           messages: userData.settings?.notifications?.messages ?? true
         });
-        
       } else {
         throw new Error(response.error || 'Failed to load user data');
       }
@@ -136,12 +241,9 @@ export default function SettingsPage() {
         clearAllTokens();
         showMessage('Session expired. Please log in again.');
         setTimeout(() => window.location.href = '/login', 2000);
-      } else if (loadError.message.includes('Network error')) {
-        showMessage('Connection error. Please check your internet.');
       } else {
         showMessage(`Failed to load user data: ${loadError.message}`);
       }
-      
     } finally {
       setInitialLoading(false);
     }
@@ -175,48 +277,46 @@ export default function SettingsPage() {
     setLoading(true);
     
     try {
-      console.log('=== ACCOUNT UPDATE START ===');
-      console.log('Form data:', {
-        fullName: accountForm.fullName,
-        bio: accountForm.bio,
-        bioLength: accountForm.bio?.length || 0,
-        website: accountForm.website,
-        phoneNumber: accountForm.phoneNumber,
-        gender: accountForm.gender,
-        hasFile: !!profilePictureFile
-      });
+      // Determine if we need FormData (for profile picture) or JSON
+      const hasFile = !!profilePictureFile;
+      const hasUsernameOrEmail = accountForm.username !== user.username || accountForm.email !== user.email;
       
-      const formData = new FormData();
+      let response;
       
-      // Add all fields - backend will handle them
-      formData.append('fullName', accountForm.fullName.trim());
-      formData.append('bio', accountForm.bio.trim());
-      
-      if (accountForm.website?.trim()) {
-        formData.append('website', accountForm.website.trim());
-      }
-      if (accountForm.phoneNumber?.trim()) {
-        formData.append('phoneNumber', accountForm.phoneNumber.trim());
-      }
-      if (accountForm.gender) {
-        formData.append('gender', accountForm.gender);
+      if (hasUsernameOrEmail) {
+        // Use /account endpoint for username/email changes (JSON only)
+        const accountData = {
+          username: accountForm.username.trim(),
+          email: accountForm.email.trim(),
+          fullName: accountForm.fullName.trim(),
+          bio: accountForm.bio.trim(),
+          website: accountForm.website?.trim() || '',
+          phoneNumber: accountForm.phoneNumber?.trim() || '',
+          gender: accountForm.gender || ''
+        };
+        response = await settingsAPI.updateAccount(accountData);
       }
       
-      if (profilePictureFile) {
-        formData.append('profilePicture', profilePictureFile);
+      // If there's a file or if we didn't change username/email, use /profile endpoint
+      if (hasFile || !hasUsernameOrEmail) {
+        const formData = new FormData();
+        formData.append('fullName', accountForm.fullName.trim());
+        formData.append('bio', accountForm.bio.trim());
+        
+        if (accountForm.website?.trim()) formData.append('website', accountForm.website.trim());
+        if (accountForm.phoneNumber?.trim()) formData.append('phoneNumber', accountForm.phoneNumber.trim());
+        if (accountForm.gender) formData.append('gender', accountForm.gender);
+        if (profilePictureFile) formData.append('profilePicture', profilePictureFile);
+        
+        response = await settingsAPI.updateProfile(formData);
       }
-      
-      console.log('Calling settingsAPI.updateProfile...');
-      const response = await settingsAPI.updateProfile(formData);
-      console.log('Response received:', response);
       
       if (response.success && response.user) {
-        console.log('Update successful, new user data:', response.user);
-        
-        // Update local state with fresh data from server
         setUser(response.user);
         
         setAccountForm({
+          username: response.user.username || '',
+          email: response.user.email || '',
           fullName: response.user.fullName || '',
           bio: response.user.bio || '',
           website: response.user.website || '',
@@ -229,9 +329,7 @@ export default function SettingsPage() {
         
         const fileInput = document.querySelector('input[type="file"]');
         if (fileInput) fileInput.value = '';
-        
       } else {
-        console.error('Update failed:', response.error);
         throw new Error(response.error || 'Update failed');
       }
     } catch (updateError) {
@@ -239,7 +337,6 @@ export default function SettingsPage() {
       showMessage(updateError.message || 'Failed to update account');
     } finally {
       setLoading(false);
-      console.log('=== ACCOUNT UPDATE END ===');
     }
   };
 
@@ -288,10 +385,6 @@ export default function SettingsPage() {
     }
     if (passwordForm.newPassword.length < 6) {
       showMessage('New password must be at least 6 characters long');
-      return;
-    }
-    if (passwordForm.currentPassword === passwordForm.newPassword) {
-      showMessage('New password must be different from current password');
       return;
     }
 
@@ -343,10 +436,10 @@ export default function SettingsPage() {
 
   if (initialLoading) {
     return (
-      <div className="loading-container">
-        <div className="loading-content">
-          <div className="loading-spinner"></div>
-          <p className="loading-text">Loading your settings...</p>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#fafafa' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ width: 50, height: 50, border: '3px solid #dbdbdb', borderTop: '3px solid #3897f0', borderRadius: '50%', margin: '0 auto 20px', animation: 'spin 1s linear infinite' }}></div>
+          <p style={{ color: '#262626' }}>Loading your settings...</p>
         </div>
       </div>
     );
@@ -354,384 +447,225 @@ export default function SettingsPage() {
 
   if (!user) {
     return (
-      <div className="error-container">
-        <div className="error-content">
-          <h2 className="error-title">Unable to Load Settings</h2>
-          <p className="error-text">We couldn&apos;t load your account settings.</p>
-          {message && <p className="error-message">{message}</p>}
-          <div className="error-actions">
-            <button onClick={() => window.location.reload()} className="retry-button">
-              Try Again
-            </button>
-            <button onClick={() => window.location.href = '/login'} className="login-button">
-              Go to Login
-            </button>
-          </div>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#fafafa' }}>
+        <div style={{ textAlign: 'center', maxWidth: 400, padding: 20 }}>
+          <h2 style={{ marginBottom: 10 }}>Unable to Load Settings</h2>
+          <p style={{ color: '#737373', marginBottom: 20 }}>We couldn't load your account settings.</p>
+          <button onClick={() => window.location.reload()} style={{ padding: '10px 20px', marginRight: 10, background: '#3897f0', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
+            Try Again
+          </button>
+          <button onClick={() => window.location.href = '/login'} style={{ padding: '10px 20px', background: '#fff', border: '1px solid #dbdbdb', borderRadius: 4, cursor: 'pointer' }}>
+            Go to Login
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="settings-page">
-      <div className="settings-container">
-        <div className="settings-header">
-          <button onClick={() => window.history.back()} className="back-button">
-            ← Back
-          </button>
-          <h1 className="settings-title">Settings</h1>
+    <div style={{ minHeight: '100vh', background: '#fafafa', padding: '20px 0' }}>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .settings-input { width: 100%; padding: 10px; border: 1px solid #dbdbdb; borderRadius: 4px; fontSize: 14px; }
+        .settings-input:focus { outline: none; border-color: #3897f0; }
+        .settings-textarea { width: 100%; padding: 10px; border: 1px solid #dbdbdb; borderRadius: 4px; fontSize: 14px; resize: vertical; }
+        .settings-select { width: 100%; padding: 10px; border: 1px solid #dbdbdb; borderRadius: 4px; fontSize: 14px; background: white; }
+        .toggle-switch { position: relative; display: inline-block; width: 51px; height: 31px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .toggle-slider:before { position: absolute; content: ""; height: 23px; width: 23px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .toggle-slider { background-color: #3897f0; }
+        input:checked + .toggle-slider:before { transform: translateX(20px); }
+      `}</style>
+      
+      <div style={{ maxWidth: 935, margin: '0 auto', background: 'white', borderRadius: 8, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+        <div style={{ padding: '20px 30px', borderBottom: '1px solid #dbdbdb', display: 'flex', alignItems: 'center', gap: 15 }}>
+          <button onClick={() => window.history.back()} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#262626' }}>←</button>
+          <h1 style={{ fontSize: 24, fontWeight: 600, margin: 0 }}>Settings</h1>
         </div>
         
         {message && (
-          <div className={`message ${
-            message.includes('successfully') || message.includes('Selected') 
-              ? 'message-success' : 'message-error'
-          }`}>
+          <div style={{ padding: '12px 30px', background: message.includes('successfully') || message.includes('Selected') ? '#d4edda' : '#f8d7da', color: message.includes('successfully') || message.includes('Selected') ? '#155724' : '#721c24', borderBottom: '1px solid #dbdbdb' }}>
             {message}
           </div>
         )}
 
-        <div className="settings-card">
-          <div className="settings-tabs-container">
-            <nav className="settings-tabs">
-              {[
-                { id: 'account', label: 'Account' },
-                { id: 'privacy', label: 'Privacy' },
-                { id: 'notifications', label: 'Notifications' },
-                { id: 'password', label: 'Security' }
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`tab-button ${activeTab === tab.id ? 'tab-active' : ''}`}
-                  disabled={loading}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </nav>
-          </div>
+        <div style={{ display: 'flex', borderBottom: '1px solid #dbdbdb' }}>
+          {[
+            { id: 'account', label: 'Account' },
+            { id: 'privacy', label: 'Privacy' },
+            { id: 'notifications', label: 'Notifications' },
+            { id: 'password', label: 'Security' }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              style={{ padding: '15px 30px', background: 'none', border: 'none', borderBottom: activeTab === tab.id ? '2px solid #262626' : '2px solid transparent', cursor: 'pointer', fontWeight: activeTab === tab.id ? 600 : 400, color: activeTab === tab.id ? '#262626' : '#8e8e8e' }}
+              disabled={loading}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
-          <div className="settings-content">
-            {activeTab === 'account' && (
-              <form onSubmit={handleAccountUpdate} className="form-container">
-                <div className="profile-picture-section">
-                  <img
-                    src={user.profilePicture || '/default-avatar.png'}
-                    alt="Profile"
-                    className="profile-picture"
-                    onError={(e) => { e.target.src = '/default-avatar.png'; }}
-                  />
-                  <div className="profile-picture-upload">
-                    <label className="form-label">Profile Picture</label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleProfilePictureChange}
-                      className="file-input"
-                      disabled={loading}
-                    />
-                    {profilePictureFile && (
-                      <p className="file-selected">
-                        New image: {profilePictureFile.name}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setProfilePictureFile(null);
-                            const fileInput = document.querySelector('input[type="file"]');
-                            if (fileInput) fileInput.value = '';
-                          }}
-                          className="file-remove"
-                        >
-                          Remove
-                        </button>
-                      </p>
-                    )}
+        <div style={{ padding: 30 }}>
+          {activeTab === 'account' && (
+            <form onSubmit={handleAccountUpdate}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 30, marginBottom: 30, paddingBottom: 30, borderBottom: '1px solid #efefef' }}>
+                <img
+                  src={user.profilePicture || '/default-avatar.png'}
+                  alt="Profile"
+                  style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover' }}
+                  onError={(e) => { e.target.src = '/default-avatar.png'; }}
+                />
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>Profile Picture</label>
+                  <input type="file" accept="image/*" onChange={handleProfilePictureChange} style={{ fontSize: 14 }} disabled={loading} />
+                  {profilePictureFile && (
+                    <p style={{ marginTop: 8, fontSize: 13, color: '#737373' }}>
+                      New image: {profilePictureFile.name}
+                      <button type="button" onClick={() => { setProfilePictureFile(null); const fileInput = document.querySelector('input[type="file"]'); if (fileInput) fileInput.value = ''; }} style={{ marginLeft: 10, color: '#ed4956', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Remove</button>
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+                <div>
+                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>Username</label>
+                  <input type="text" value={accountForm.username} onChange={(e) => setAccountForm({...accountForm, username: e.target.value})} className="settings-input" disabled={loading} minLength={3} maxLength={30} placeholder="Enter username" />
+                  <p style={{ fontSize: 12, color: '#737373', marginTop: 4 }}>3-30 characters, letters, numbers, underscores only</p>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>Email</label>
+                  <input type="email" value={accountForm.email} onChange={(e) => setAccountForm({...accountForm, email: e.target.value})} className="settings-input" disabled={loading} placeholder="Enter email" />
+                  <p style={{ fontSize: 12, color: '#737373', marginTop: 4 }}>Must be a valid email address</p>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>Full Name *</label>
+                <input type="text" value={accountForm.fullName} onChange={(e) => setAccountForm({...accountForm, fullName: e.target.value})} className="settings-input" required maxLength={50} disabled={loading} placeholder="Enter your full name" />
+              </div>
+
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>Bio</label>
+                <textarea value={accountForm.bio} onChange={(e) => setAccountForm({...accountForm, bio: e.target.value})} className="settings-textarea" rows={3} maxLength={150} placeholder="Tell us about yourself..." disabled={loading} />
+                <p style={{ fontSize: 12, color: '#737373', marginTop: 4 }}>{accountForm.bio.length}/150 characters</p>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+                <div>
+                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>Website</label>
+                  <input type="url" value={accountForm.website} onChange={(e) => setAccountForm({...accountForm, website: e.target.value})} className="settings-input" placeholder="https://yourwebsite.com" disabled={loading} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>Phone Number</label>
+                  <input type="tel" value={accountForm.phoneNumber} onChange={(e) => setAccountForm({...accountForm, phoneNumber: e.target.value})} className="settings-input" placeholder="+1 234 567 8900" disabled={loading} />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: 30 }}>
+                <label style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>Gender</label>
+                <select value={accountForm.gender} onChange={(e) => setAccountForm({...accountForm, gender: e.target.value})} className="settings-select" disabled={loading}>
+                  <option value="">Prefer not to say</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <button type="submit" disabled={loading} style={{ padding: '10px 30px', background: loading ? '#b2dffc' : '#3897f0', color: 'white', border: 'none', borderRadius: 4, cursor: loading ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14 }}>
+                {loading ? 'Saving...' : 'Save Changes'}
+              </button>
+            </form>
+          )}
+
+          {activeTab === 'privacy' && (
+            <div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginBottom: 30 }}>
+                {[
+                  { key: 'isPrivate', title: 'Private Account', desc: 'Only approved followers can see your posts' },
+                  { key: 'showOnlineStatus', title: 'Show Online Status', desc: 'Let others see when you\'re active' },
+                  { key: 'allowTagging', title: 'Allow Tagging', desc: 'Let others tag you in their posts' },
+                  { key: 'allowMessagesFromStrangers', title: 'Messages from Strangers', desc: 'Allow messages from people you don\'t follow' }
+                ].map(({ key, title, desc }) => (
+                  <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 0', borderBottom: '1px solid #efefef' }}>
+                    <div>
+                      <h3 style={{ margin: 0, marginBottom: 4, fontSize: 16, fontWeight: 600 }}>{title}</h3>
+                      <p style={{ margin: 0, fontSize: 14, color: '#737373' }}>{desc}</p>
+                    </div>
+                    <label className="toggle-switch">
+                      <input type="checkbox" checked={privacyForm[key]} onChange={(e) => setPrivacyForm({...privacyForm, [key]: e.target.checked})} disabled={loading} />
+                      <span className="toggle-slider"></span>
+                    </label>
                   </div>
-                </div>
+                ))}
+              </div>
+              <button onClick={handlePrivacyUpdate} disabled={loading} style={{ padding: '10px 30px', background: loading ? '#b2dffc' : '#3897f0', color: 'white', border: 'none', borderRadius: 4, cursor: loading ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14 }}>
+                {loading ? 'Saving...' : 'Save Privacy Settings'}
+              </button>
+            </div>
+          )}
 
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Username</label>
-                    <input
-                      type="text"
-                      value={username}
-                      className="form-input"
-                      disabled
-                      style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
-                    />
-                    <p className="field-help">Username cannot be changed</p>
+          {activeTab === 'notifications' && (
+            <div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginBottom: 30 }}>
+                {Object.entries(notificationForm).map(([key, value]) => (
+                  <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 0', borderBottom: '1px solid #efefef' }}>
+                    <div>
+                      <h3 style={{ margin: 0, marginBottom: 4, fontSize: 16, fontWeight: 600 }}>{key.charAt(0).toUpperCase() + key.slice(1)}</h3>
+                      <p style={{ margin: 0, fontSize: 14, color: '#737373' }}>Get notifications for {key}</p>
+                    </div>
+                    <label className="toggle-switch">
+                      <input type="checkbox" checked={value} onChange={(e) => setNotificationForm({...notificationForm, [key]: e.target.checked})} disabled={loading} />
+                      <span className="toggle-slider"></span>
+                    </label>
                   </div>
+                ))}
+              </div>
+              <button onClick={handleNotificationUpdate} disabled={loading} style={{ padding: '10px 30px', background: loading ? '#b2dffc' : '#3897f0', color: 'white', border: 'none', borderRadius: 4, cursor: loading ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14 }}>
+                {loading ? 'Saving...' : 'Save Notification Settings'}
+              </button>
+            </div>
+          )}
 
-                  <div className="form-group">
-                    <label className="form-label">Email</label>
-                    <input
-                      type="email"
-                      value={email}
-                      className="form-input"
-                      disabled
-                      style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
-                    />
-                    <p className="field-help">Email cannot be changed here</p>
-                  </div>
+          {activeTab === 'password' && (
+            <div>
+              <form onSubmit={handlePasswordChange} style={{ marginBottom: 40 }}>
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>Current Password</label>
+                  <input type="password" value={passwordForm.currentPassword} onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})} className="settings-input" required minLength={6} disabled={loading} placeholder="Enter your current password" />
                 </div>
-
-                <div className="form-group">
-                  <label className="form-label">Full Name *</label>
-                  <input
-                    type="text"
-                    value={accountForm.fullName}
-                    onChange={(e) => setAccountForm({...accountForm, fullName: e.target.value})}
-                    className="form-input"
-                    required
-                    maxLength={50}
-                    disabled={loading}
-                    placeholder="Enter your full name"
-                  />
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>New Password</label>
+                  <input type="password" value={passwordForm.newPassword} onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})} className="settings-input" required minLength={6} disabled={loading} placeholder="Enter new password" />
+                  <p style={{ fontSize: 12, color: '#737373', marginTop: 4 }}>Password must be at least 6 characters long</p>
                 </div>
-
-                <div className="form-group">
-                  <label className="form-label">Bio</label>
-                  <textarea
-                    value={accountForm.bio}
-                    onChange={(e) => setAccountForm({...accountForm, bio: e.target.value})}
-                    className="form-textarea"
-                    rows={3}
-                    maxLength={150}
-                    placeholder="Tell us about yourself..."
-                    disabled={loading}
-                  />
-                  <p className="character-count">{accountForm.bio.length}/150 characters</p>
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>Confirm New Password</label>
+                  <input type="password" value={passwordForm.confirmPassword} onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})} className="settings-input" required minLength={6} disabled={loading} placeholder="Confirm new password" />
+                  {passwordForm.confirmPassword && passwordForm.newPassword !== passwordForm.confirmPassword && (
+                    <p style={{ fontSize: 12, color: '#ed4956', marginTop: 4 }}>Passwords do not match</p>
+                  )}
                 </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Website</label>
-                    <input
-                      type="url"
-                      value={accountForm.website}
-                      onChange={(e) => setAccountForm({...accountForm, website: e.target.value})}
-                      className="form-input"
-                      placeholder="https://yourwebsite.com"
-                      disabled={loading}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">Phone Number</label>
-                    <input
-                      type="tel"
-                      value={accountForm.phoneNumber}
-                      onChange={(e) => setAccountForm({...accountForm, phoneNumber: e.target.value})}
-                      className="form-input"
-                      placeholder="+1 234 567 8900"
-                      disabled={loading}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Gender</label>
-                  <select
-                    value={accountForm.gender}
-                    onChange={(e) => setAccountForm({...accountForm, gender: e.target.value})}
-                    className="form-select"
-                    disabled={loading}
-                  >
-                    <option value="">Prefer not to say</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-
-                <button type="submit" disabled={loading} className="submit-button">
-                  {loading && <div className="button-spinner"></div>}
-                  {loading ? 'Saving...' : 'Save Changes'}
+                <button type="submit" disabled={loading || passwordForm.newPassword !== passwordForm.confirmPassword} style={{ padding: '10px 30px', background: loading ? '#b2dffc' : '#3897f0', color: 'white', border: 'none', borderRadius: 4, cursor: loading ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14 }}>
+                  {loading ? 'Changing...' : 'Change Password'}
                 </button>
               </form>
-            )}
 
-            {activeTab === 'privacy' && (
-              <div className="privacy-settings">
-                <div className="settings-list">
-                  <div className="setting-item">
-                    <div className="setting-info">
-                      <h3 className="setting-title">Private Account</h3>
-                      <p className="setting-description">Only approved followers can see your posts</p>
-                    </div>
-                    <label className="toggle-switch">
-                      <input
-                        type="checkbox"
-                        checked={privacyForm.isPrivate}
-                        onChange={(e) => setPrivacyForm({...privacyForm, isPrivate: e.target.checked})}
-                        disabled={loading}
-                      />
-                      <span className="toggle-slider"></span>
-                    </label>
-                  </div>
-
-                  <div className="setting-item">
-                    <div className="setting-info">
-                      <h3 className="setting-title">Show Online Status</h3>
-                      <p className="setting-description">Let others see when you&apos;re active</p>
-                    </div>
-                    <label className="toggle-switch">
-                      <input
-                        type="checkbox"
-                        checked={privacyForm.showOnlineStatus}
-                        onChange={(e) => setPrivacyForm({...privacyForm, showOnlineStatus: e.target.checked})}
-                        disabled={loading}
-                      />
-                      <span className="toggle-slider"></span>
-                    </label>
-                  </div>
-
-                  <div className="setting-item">
-                    <div className="setting-info">
-                      <h3 className="setting-title">Allow Tagging</h3>
-                      <p className="setting-description">Let others tag you in their posts</p>
-                    </div>
-                    <label className="toggle-switch">
-                      <input
-                        type="checkbox"
-                        checked={privacyForm.allowTagging}
-                        onChange={(e) => setPrivacyForm({...privacyForm, allowTagging: e.target.checked})}
-                        disabled={loading}
-                      />
-                      <span className="toggle-slider"></span>
-                    </label>
-                  </div>
-
-                  <div className="setting-item">
-                    <div className="setting-info">
-                      <h3 className="setting-title">Messages from Strangers</h3>
-                      <p className="setting-description">Allow messages from people you don&apos;t follow</p>
-                    </div>
-                    <label className="toggle-switch">
-                      <input
-                        type="checkbox"
-                        checked={privacyForm.allowMessagesFromStrangers}
-                        onChange={(e) => setPrivacyForm({...privacyForm, allowMessagesFromStrangers: e.target.checked})}
-                        disabled={loading}
-                      />
-                      <span className="toggle-slider"></span>
-                    </label>
-                  </div>
-                </div>
-
-                <button onClick={handlePrivacyUpdate} disabled={loading} className="submit-button">
-                  {loading && <div className="button-spinner"></div>}
-                  {loading ? 'Saving...' : 'Save Privacy Settings'}
-                </button>
-              </div>
-            )}
-
-            {activeTab === 'notifications' && (
-              <div className="notification-settings">
-                <div className="settings-list">
-                  {Object.entries(notificationForm).map(([key, value]) => (
-                    <div key={key} className="setting-item">
-                      <div className="setting-info">
-                        <h3 className="setting-title">{key.charAt(0).toUpperCase() + key.slice(1)}</h3>
-                        <p className="setting-description">Get notifications for {key}</p>
-                      </div>
-                      <label className="toggle-switch">
-                        <input
-                          type="checkbox"
-                          checked={value}
-                          onChange={(e) => setNotificationForm({...notificationForm, [key]: e.target.checked})}
-                          disabled={loading}
-                        />
-                        <span className="toggle-slider"></span>
-                      </label>
-                    </div>
-                  ))}
-                </div>
-
-                <button onClick={handleNotificationUpdate} disabled={loading} className="submit-button">
-                  {loading && <div className="button-spinner"></div>}
-                  {loading ? 'Saving...' : 'Save Notification Settings'}
-                </button>
-              </div>
-            )}
-
-            {activeTab === 'password' && (
-              <div className="password-settings">
-                <form onSubmit={handlePasswordChange} className="password-form">
-                  <div className="form-group">
-                    <label className="form-label">Current Password</label>
-                    <input
-                      type="password"
-                      value={passwordForm.currentPassword}
-                      onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
-                      className="form-input"
-                      required
-                      minLength={6}
-                      disabled={loading}
-                      placeholder="Enter your current password"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">New Password</label>
-                    <input
-                      type="password"
-                      value={passwordForm.newPassword}
-                      onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
-                      className="form-input"
-                      required
-                      minLength={6}
-                      disabled={loading}
-                      placeholder="Enter new password"
-                    />
-                    <p className="field-help">Password must be at least 6 characters long</p>
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">Confirm New Password</label>
-                    <input
-                      type="password"
-                      value={passwordForm.confirmPassword}
-                      onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
-                      className="form-input"
-                      required
-                      minLength={6}
-                      disabled={loading}
-                      placeholder="Confirm new password"
-                    />
-                    {passwordForm.confirmPassword && passwordForm.newPassword !== passwordForm.confirmPassword && (
-                      <p className="field-error">Passwords do not match</p>
-                    )}
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={loading || passwordForm.newPassword !== passwordForm.confirmPassword}
-                    className="submit-button"
-                  >
-                    {loading && <div className="button-spinner"></div>}
-                    {loading ? 'Changing...' : 'Change Password'}
+              <div style={{ background: '#fff5f5', border: '1px solid #fed7d7', borderRadius: 8, padding: 20 }}>
+                <h3 style={{ color: '#c53030', margin: '0 0 10px 0', fontSize: 18 }}>Danger Zone</h3>
+                <div style={{ marginTop: 20 }}>
+                  <h4 style={{ margin: '0 0 8px 0', fontSize: 16 }}>Deactivate Account</h4>
+                  <p style={{ color: '#737373', fontSize: 14, marginBottom: 15 }}>Temporarily disable your account. You can reactivate it anytime by logging in again.</p>
+                  <button onClick={handleDeactivate} disabled={loading} style={{ padding: '10px 30px', background: loading ? '#fbb' : '#ed4956', color: 'white', border: 'none', borderRadius: 4, cursor: loading ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14 }}>
+                    {loading ? 'Deactivating...' : 'Deactivate Account'}
                   </button>
-                </form>
-
-                <div className="danger-zone">
-                  <h3 className="danger-title">Danger Zone</h3>
-                  
-                  <div className="danger-section">
-                    <h4 className="danger-subtitle">Deactivate Account</h4>
-                    <p className="danger-description">
-                      Temporarily disable your account. You can reactivate it anytime by logging in again.
-                    </p>
-                    <button onClick={handleDeactivate} disabled={loading} className="danger-button">
-                      {loading && <div className="button-spinner"></div>}
-                      {loading ? 'Deactivating...' : 'Deactivate Account'}
-                    </button>
-                  </div>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
