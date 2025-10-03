@@ -278,39 +278,27 @@ export default function SettingsPage() {
     setLoading(true);
     
     try {
-      // Determine if we need to update username/email or just profile info
+      // Check if username or email changed
       const hasUsernameOrEmail = accountForm.username !== user.username || accountForm.email !== user.email;
-      const hasFile = !!profilePictureFile;
       
-      let response;
-      
-      // If username or email changed, use the /account endpoint (JSON)
+      // If username/email changed, show error message (backend doesn't support this via /profile)
       if (hasUsernameOrEmail) {
-        const accountData = {
-          username: accountForm.username.trim(),
-          email: accountForm.email.trim(),
-          fullName: accountForm.fullName.trim(),
-          bio: accountForm.bio.trim(),
-          website: accountForm.website?.trim() || '',
-          phoneNumber: accountForm.phoneNumber?.trim() || '',
-          gender: accountForm.gender || ''
-        };
-        response = await settingsAPI.updateAccount(accountData);
+        showMessage('Username and email changes are currently not supported. Please contact support.');
+        setLoading(false);
+        return;
       }
       
-      // If there's a file or only profile info changed, use /profile endpoint (FormData)
-      if (hasFile || !hasUsernameOrEmail) {
-        const formData = new FormData();
-        formData.append('fullName', accountForm.fullName.trim());
-        formData.append('bio', accountForm.bio.trim());
-        
-        if (accountForm.website?.trim()) formData.append('website', accountForm.website.trim());
-        if (accountForm.phoneNumber?.trim()) formData.append('phoneNumber', accountForm.phoneNumber.trim());
-        if (accountForm.gender) formData.append('gender', accountForm.gender);
-        if (profilePictureFile) formData.append('profilePicture', profilePictureFile);
-        
-        response = await settingsAPI.updateProfile(formData);
-      }
+      // Use /profile endpoint for all updates (FormData)
+      const formData = new FormData();
+      formData.append('fullName', accountForm.fullName.trim());
+      formData.append('bio', accountForm.bio.trim());
+      
+      if (accountForm.website?.trim()) formData.append('website', accountForm.website.trim());
+      if (accountForm.phoneNumber?.trim()) formData.append('phoneNumber', accountForm.phoneNumber.trim());
+      if (accountForm.gender) formData.append('gender', accountForm.gender);
+      if (profilePictureFile) formData.append('profilePicture', profilePictureFile);
+      
+      const response = await settingsAPI.updateProfile(formData);
       
       if (response.success && response.user) {
         setUser(response.user);
