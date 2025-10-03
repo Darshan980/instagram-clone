@@ -3,7 +3,6 @@ import { useState, useEffect, useCallback } from 'react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000/api';
 
-// Settings API Class
 class SettingsAPI {
   constructor() {
     this.token = null;
@@ -82,14 +81,6 @@ class SettingsAPI {
     }
   }
 
-  async updateAccount(accountData) {
-    // FIXED: Changed from /profile to /account endpoint
-    return await this.makeRequest(`${this.baseURL}/account`, {
-      method: 'PUT',
-      body: JSON.stringify(accountData)
-    });
-  }
-
   async updatePrivacy(privacyData) {
     return await this.makeRequest(`${this.baseURL}/privacy`, {
       method: 'PUT',
@@ -125,6 +116,7 @@ export default function SettingsPage() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [profilePictureFile, setProfilePictureFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
 
   const [accountForm, setAccountForm] = useState({
     username: '',
@@ -167,8 +159,8 @@ export default function SettingsPage() {
     }
   }, []);
 
-  const showMessage = useCallback((msg) => {
-    setMessage(msg);
+  const showMessage = useCallback((msg, isSuccess = false) => {
+    setMessage({ text: msg, isSuccess });
     setTimeout(() => setMessage(''), 5000);
   }, []);
 
@@ -178,9 +170,7 @@ export default function SettingsPage() {
       
       const token = localStorage.getItem('instagram_token') || 
                     localStorage.getItem('authToken') || 
-                    localStorage.getItem('token') ||
-                    sessionStorage.getItem('instagram_token') ||
-                    sessionStorage.getItem('token');
+                    localStorage.getItem('token');
       
       if (!token) {
         showMessage('Please log in to access settings');
@@ -237,8 +227,7 @@ export default function SettingsPage() {
       console.error('Load user data error:', loadError);
       
       if (loadError.message.includes('Authentication failed') || 
-          loadError.message.includes('401') ||
-          loadError.message.includes('Unauthorized')) {
+          loadError.message.includes('401')) {
         clearAllTokens();
         showMessage('Session expired. Please log in again.');
         setTimeout(() => window.location.href = '/login', 2000);
@@ -269,7 +258,14 @@ export default function SettingsPage() {
         return;
       }
       setProfilePictureFile(file);
-      showMessage(`Selected image: ${file.name}`);
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result);
+      };
+      reader.readAsDataURL(file);
+      
+      showMessage(`Selected: ${file.name}`, true);
     }
   };
 
@@ -278,25 +274,33 @@ export default function SettingsPage() {
     setLoading(true);
     
     try {
-      // Check if username or email changed
-      const hasUsernameOrEmail = accountForm.username !== user.username || accountForm.email !== user.email;
+      const formData = new FormData();
       
-      // If username/email changed, show error message (backend doesn't support this via /profile)
-      if (hasUsernameOrEmail) {
-        showMessage('Username and email changes are currently not supported. Please contact support.');
+      if (accountForm.fullName.trim()) {
+        formData.append('fullName', accountForm.fullName.trim());
+      } else {
+        showMessage('Full name is required');
         setLoading(false);
         return;
       }
       
-      // Use /profile endpoint for all updates (FormData)
-      const formData = new FormData();
-      formData.append('fullName', accountForm.fullName.trim());
       formData.append('bio', accountForm.bio.trim());
       
-      if (accountForm.website?.trim()) formData.append('website', accountForm.website.trim());
-      if (accountForm.phoneNumber?.trim()) formData.append('phoneNumber', accountForm.phoneNumber.trim());
-      if (accountForm.gender) formData.append('gender', accountForm.gender);
-      if (profilePictureFile) formData.append('profilePicture', profilePictureFile);
+      if (accountForm.website?.trim()) {
+        formData.append('website', accountForm.website.trim());
+      }
+      
+      if (accountForm.phoneNumber?.trim()) {
+        formData.append('phoneNumber', accountForm.phoneNumber.trim());
+      }
+      
+      if (accountForm.gender) {
+        formData.append('gender', accountForm.gender);
+      }
+      
+      if (profilePictureFile) {
+        formData.append('profilePicture', profilePictureFile);
+      }
       
       const response = await settingsAPI.updateProfile(formData);
       
@@ -313,8 +317,9 @@ export default function SettingsPage() {
           gender: response.user.gender || ''
         });
         
-        showMessage('Account updated successfully');
+        showMessage('Profile updated successfully!', true);
         setProfilePictureFile(null);
+        setPreviewUrl(null);
         
         const fileInput = document.querySelector('input[type="file"]');
         if (fileInput) fileInput.value = '';
@@ -323,7 +328,7 @@ export default function SettingsPage() {
       }
     } catch (updateError) {
       console.error('Account update error:', updateError);
-      showMessage(updateError.message || 'Failed to update account');
+      showMessage(updateError.message || 'Failed to update profile');
     } finally {
       setLoading(false);
     }
@@ -335,7 +340,7 @@ export default function SettingsPage() {
       const response = await settingsAPI.updatePrivacy(privacyForm);
       if (response.success && response.user) {
         setUser(response.user);
-        showMessage('Privacy settings updated successfully');
+        showMessage('Privacy settings updated!', true);
       } else {
         throw new Error(response.error || 'Update failed');
       }
@@ -353,7 +358,7 @@ export default function SettingsPage() {
       const response = await settingsAPI.updateNotifications(notificationForm);
       if (response.success && response.user) {
         setUser(response.user);
-        showMessage('Notification settings updated successfully');
+        showMessage('Notification settings updated!', true);
       } else {
         throw new Error(response.error || 'Update failed');
       }
@@ -373,7 +378,7 @@ export default function SettingsPage() {
       return;
     }
     if (passwordForm.newPassword.length < 6) {
-      showMessage('New password must be at least 6 characters long');
+      showMessage('New password must be at least 6 characters');
       return;
     }
 
@@ -386,7 +391,7 @@ export default function SettingsPage() {
       
       if (response.success) {
         setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-        showMessage('Password updated successfully');
+        showMessage('Password changed successfully!', true);
       } else {
         throw new Error(response.error || 'Password change failed');
       }
@@ -400,7 +405,7 @@ export default function SettingsPage() {
 
   const handleDeactivate = async () => {
     const confirmed = confirm(
-      'Are you sure you want to deactivate your account? You can reactivate it later by logging in again.'
+      'Are you sure you want to deactivate your account? You can reactivate it by logging in again.'
     );
     
     if (!confirmed) return;
@@ -411,8 +416,8 @@ export default function SettingsPage() {
       
       if (response.success) {
         clearAllTokens();
-        showMessage('Account deactivated successfully. Redirecting...');
-        setTimeout(() => window.location.href = '/login', 3000);
+        showMessage('Account deactivated. Redirecting...', true);
+        setTimeout(() => window.location.href = '/login', 2000);
       } else {
         throw new Error(response.error || 'Deactivation failed');
       }
@@ -427,8 +432,8 @@ export default function SettingsPage() {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#fafafa' }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ width: 50, height: 50, border: '3px solid #dbdbdb', borderTop: '3px solid #3897f0', borderRadius: '50%', margin: '0 auto 20px', animation: 'spin 1s linear infinite' }}></div>
-          <p style={{ color: '#262626' }}>Loading your settings...</p>
+          <div style={{ width: 50, height: 50, border: '3px solid #dbdbdb', borderTop: '3px solid #0095f6', borderRadius: '50%', margin: '0 auto 20px', animation: 'spin 1s linear infinite' }}></div>
+          <p style={{ color: '#262626' }}>Loading settings...</p>
         </div>
       </div>
     );
@@ -439,12 +444,12 @@ export default function SettingsPage() {
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#fafafa' }}>
         <div style={{ textAlign: 'center', maxWidth: 400, padding: 20 }}>
           <h2 style={{ marginBottom: 10 }}>Unable to Load Settings</h2>
-          <p style={{ color: '#737373', marginBottom: 20 }}>We couldn&apos;t load your account settings.</p>
-          <button onClick={() => window.location.reload()} style={{ padding: '10px 20px', marginRight: 10, background: '#3897f0', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
-            Try Again
+          <p style={{ color: '#737373', marginBottom: 20 }}>Please try again or log in.</p>
+          <button onClick={() => window.location.reload()} style={{ padding: '10px 20px', marginRight: 10, background: '#0095f6', color: 'white', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}>
+            Retry
           </button>
-          <button onClick={() => window.location.href = '/login'} style={{ padding: '10px 20px', background: '#fff', border: '1px solid #dbdbdb', borderRadius: 4, cursor: 'pointer' }}>
-            Go to Login
+          <button onClick={() => window.location.href = '/login'} style={{ padding: '10px 20px', background: '#fff', border: '1px solid #dbdbdb', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}>
+            Login
           </button>
         </div>
       </div>
@@ -455,33 +460,38 @@ export default function SettingsPage() {
     <div style={{ minHeight: '100vh', background: '#fafafa', padding: '20px 0' }}>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
-        .settings-input { width: 100%; padding: 10px; border: 1px solid #dbdbdb; borderRadius: 4px; fontSize: 14px; }
-        .settings-input:focus { outline: none; border-color: #3897f0; }
-        .settings-textarea { width: 100%; padding: 10px; border: 1px solid #dbdbdb; borderRadius: 4px; fontSize: 14px; resize: vertical; }
-        .settings-select { width: 100%; padding: 10px; border: 1px solid #dbdbdb; borderRadius: 4px; fontSize: 14px; background: white; }
+        .settings-input { width: 100%; padding: 12px; border: 1px solid #dbdbdb; borderRadius: 8px; fontSize: 14px; fontFamily: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .settings-input:focus { outline: none; border-color: #0095f6; }
+        .settings-textarea { width: 100%; padding: 12px; border: 1px solid #dbdbdb; borderRadius: 8px; fontSize: 14px; resize: vertical; min-height: 80px; fontFamily: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .settings-select { width: 100%; padding: 12px; border: 1px solid #dbdbdb; borderRadius: 8px; fontSize: 14px; background: white; fontFamily: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         .toggle-switch { position: relative; display: inline-block; width: 51px; height: 31px; }
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
         .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
         .toggle-slider:before { position: absolute; content: ""; height: 23px; width: 23px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .toggle-slider { background-color: #3897f0; }
+        input:checked + .toggle-slider { background-color: #0095f6; }
         input:checked + .toggle-slider:before { transform: translateX(20px); }
+        .btn-primary { padding: 10px 24px; background: #0095f6; color: white; border: none; borderRadius: 8px; cursor: pointer; fontWeight: 600; fontSize: 14px; transition: all 0.2s; }
+        .btn-primary:hover:not(:disabled) { background: #1877f2; }
+        .btn-primary:disabled { background: #b2dffc; cursor: not-allowed; }
+        .btn-danger { padding: 10px 24px; background: #ed4956; color: white; border: none; borderRadius: 8px; cursor: pointer; fontWeight: 600; fontSize: 14px; transition: all 0.2s; }
+        .btn-danger:hover:not(:disabled) { background: #c13584; }
       `}</style>
       
-      <div style={{ maxWidth: 935, margin: '0 auto', background: 'white', borderRadius: 8, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+      <div style={{ maxWidth: 935, margin: '0 auto', background: 'white', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
         <div style={{ padding: '20px 30px', borderBottom: '1px solid #dbdbdb', display: 'flex', alignItems: 'center', gap: 15 }}>
           <button onClick={() => window.history.back()} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#262626' }}>←</button>
           <h1 style={{ fontSize: 24, fontWeight: 600, margin: 0 }}>Settings</h1>
         </div>
         
         {message && (
-          <div style={{ padding: '12px 30px', background: message.includes('successfully') || message.includes('Selected') ? '#d4edda' : '#f8d7da', color: message.includes('successfully') || message.includes('Selected') ? '#155724' : '#721c24', borderBottom: '1px solid #dbdbdb' }}>
-            {message}
+          <div style={{ padding: '12px 30px', background: message.isSuccess ? '#d4edda' : '#f8d7da', color: message.isSuccess ? '#155724' : '#721c24', borderBottom: '1px solid #dbdbdb' }}>
+            {message.text}
           </div>
         )}
 
-        <div style={{ display: 'flex', borderBottom: '1px solid #dbdbdb' }}>
+        <div style={{ display: 'flex', borderBottom: '1px solid #dbdbdb', overflowX: 'auto' }}>
           {[
-            { id: 'account', label: 'Account' },
+            { id: 'account', label: 'Profile' },
             { id: 'privacy', label: 'Privacy' },
             { id: 'notifications', label: 'Notifications' },
             { id: 'password', label: 'Security' }
@@ -489,7 +499,7 @@ export default function SettingsPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              style={{ padding: '15px 30px', background: 'none', border: 'none', borderBottom: activeTab === tab.id ? '2px solid #262626' : '2px solid transparent', cursor: 'pointer', fontWeight: activeTab === tab.id ? 600 : 400, color: activeTab === tab.id ? '#262626' : '#8e8e8e' }}
+              style={{ padding: '15px 30px', background: 'none', border: 'none', borderBottom: activeTab === tab.id ? '2px solid #262626' : '2px solid transparent', cursor: 'pointer', fontWeight: activeTab === tab.id ? 600 : 400, color: activeTab === tab.id ? '#262626' : '#8e8e8e', whiteSpace: 'nowrap' }}
               disabled={loading}
             >
               {tab.label}
@@ -502,60 +512,84 @@ export default function SettingsPage() {
             <form onSubmit={handleAccountUpdate}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 30, marginBottom: 30, paddingBottom: 30, borderBottom: '1px solid #efefef' }}>
                 <img
-                  src={user.profilePicture || '/default-avatar.png'}
+                  src={previewUrl || user.profilePicture || '/default-avatar.png'}
                   alt="Profile"
-                  style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover' }}
+                  style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover', border: '2px solid #dbdbdb' }}
                   onError={(e) => { e.target.src = '/default-avatar.png'; }}
                 />
                 <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>Profile Picture</label>
+                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8, fontSize: 15 }}>Change Profile Picture</label>
                   <input type="file" accept="image/*" onChange={handleProfilePictureChange} style={{ fontSize: 14 }} disabled={loading} />
-                  {profilePictureFile && (
-                    <p style={{ marginTop: 8, fontSize: 13, color: '#737373' }}>
-                      New image: {profilePictureFile.name}
-                      <button type="button" onClick={() => { setProfilePictureFile(null); const fileInput = document.querySelector('input[type="file"]'); if (fileInput) fileInput.value = ''; }} style={{ marginLeft: 10, color: '#ed4956', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Remove</button>
-                    </p>
-                  )}
+                  <p style={{ marginTop: 8, fontSize: 12, color: '#737373' }}>JPG, PNG or GIF. Max size 5MB</p>
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
                 <div>
-                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>Username</label>
-                  <input type="text" value={accountForm.username} onChange={(e) => setAccountForm({...accountForm, username: e.target.value})} className="settings-input" disabled={loading} minLength={3} maxLength={30} placeholder="Enter username" />
-                  <p style={{ fontSize: 12, color: '#737373', marginTop: 4 }}>3-30 characters, letters, numbers, underscores only</p>
+                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8, fontSize: 14 }}>Username</label>
+                  <input type="text" value={accountForm.username} className="settings-input" disabled style={{ background: '#f7f7f7', color: '#8e8e8e', cursor: 'not-allowed' }} />
+                  <p style={{ fontSize: 11, color: '#737373', marginTop: 4 }}>Username cannot be changed</p>
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>Email</label>
-                  <input type="email" value={accountForm.email} onChange={(e) => setAccountForm({...accountForm, email: e.target.value})} className="settings-input" disabled={loading} placeholder="Enter email" />
-                  <p style={{ fontSize: 12, color: '#737373', marginTop: 4 }}>Must be a valid email address</p>
+                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8, fontSize: 14 }}>Email</label>
+                  <input type="email" value={accountForm.email} className="settings-input" disabled style={{ background: '#f7f7f7', color: '#8e8e8e', cursor: 'not-allowed' }} />
+                  <p style={{ fontSize: 11, color: '#737373', marginTop: 4 }}>Email cannot be changed</p>
                 </div>
               </div>
 
               <div style={{ marginBottom: 20 }}>
-                <label style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>Full Name *</label>
-                <input type="text" value={accountForm.fullName} onChange={(e) => setAccountForm({...accountForm, fullName: e.target.value})} className="settings-input" required maxLength={50} disabled={loading} placeholder="Enter your full name" />
+                <label style={{ display: 'block', fontWeight: 600, marginBottom: 8, fontSize: 14 }}>Full Name *</label>
+                <input 
+                  type="text" 
+                  value={accountForm.fullName} 
+                  onChange={(e) => setAccountForm({...accountForm, fullName: e.target.value})} 
+                  className="settings-input" 
+                  required 
+                  maxLength={50} 
+                  disabled={loading || initialLoading} 
+                />
               </div>
 
               <div style={{ marginBottom: 20 }}>
-                <label style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>Bio</label>
-                <textarea value={accountForm.bio} onChange={(e) => setAccountForm({...accountForm, bio: e.target.value})} className="settings-textarea" rows={3} maxLength={150} placeholder="Tell us about yourself..." disabled={loading} />
+                <label style={{ display: 'block', fontWeight: 600, marginBottom: 8, fontSize: 14 }}>Bio</label>
+                <textarea 
+                  value={accountForm.bio} 
+                  onChange={(e) => setAccountForm({...accountForm, bio: e.target.value})} 
+                  className="settings-textarea" 
+                  maxLength={150} 
+                  disabled={loading || initialLoading} 
+                  placeholder={!accountForm.bio ? "Tell us about yourself..." : ""}
+                />
                 <p style={{ fontSize: 12, color: '#737373', marginTop: 4 }}>{accountForm.bio.length}/150 characters</p>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
                 <div>
-                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>Website</label>
-                  <input type="url" value={accountForm.website} onChange={(e) => setAccountForm({...accountForm, website: e.target.value})} className="settings-input" placeholder="https://yourwebsite.com" disabled={loading} />
+                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8, fontSize: 14 }}>Website</label>
+                  <input 
+                    type="url" 
+                    value={accountForm.website} 
+                    onChange={(e) => setAccountForm({...accountForm, website: e.target.value})} 
+                    className="settings-input" 
+                    disabled={loading || initialLoading} 
+                    placeholder={!accountForm.website ? "https://example.com" : ""}
+                  />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>Phone Number</label>
-                  <input type="tel" value={accountForm.phoneNumber} onChange={(e) => setAccountForm({...accountForm, phoneNumber: e.target.value})} className="settings-input" placeholder="+1 234 567 8900" disabled={loading} />
+                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8, fontSize: 14 }}>Phone</label>
+                  <input 
+                    type="tel" 
+                    value={accountForm.phoneNumber} 
+                    onChange={(e) => setAccountForm({...accountForm, phoneNumber: e.target.value})} 
+                    className="settings-input" 
+                    disabled={loading || initialLoading} 
+                    placeholder={!accountForm.phoneNumber ? "+1 234 567 8900" : ""}
+                  />
                 </div>
               </div>
 
               <div style={{ marginBottom: 30 }}>
-                <label style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>Gender</label>
+                <label style={{ display: 'block', fontWeight: 600, marginBottom: 8, fontSize: 14 }}>Gender</label>
                 <select value={accountForm.gender} onChange={(e) => setAccountForm({...accountForm, gender: e.target.value})} className="settings-select" disabled={loading}>
                   <option value="">Prefer not to say</option>
                   <option value="male">Male</option>
@@ -564,7 +598,7 @@ export default function SettingsPage() {
                 </select>
               </div>
 
-              <button type="submit" disabled={loading} style={{ padding: '10px 30px', background: loading ? '#b2dffc' : '#3897f0', color: 'white', border: 'none', borderRadius: 4, cursor: loading ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14 }}>
+              <button type="submit" disabled={loading} className="btn-primary">
                 {loading ? 'Saving...' : 'Save Changes'}
               </button>
             </form>
@@ -577,7 +611,7 @@ export default function SettingsPage() {
                   { key: 'isPrivate', title: 'Private Account', desc: 'Only approved followers can see your posts' },
                   { key: 'showOnlineStatus', title: 'Show Online Status', desc: 'Let others see when you are active' },
                   { key: 'allowTagging', title: 'Allow Tagging', desc: 'Let others tag you in their posts' },
-                  { key: 'allowMessagesFromStrangers', title: 'Messages from Strangers', desc: 'Allow messages from people you do not follow' }
+                  { key: 'allowMessagesFromStrangers', title: 'Messages from Others', desc: 'Allow messages from people you don\'t follow' }
                 ].map(({ key, title, desc }) => (
                   <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 0', borderBottom: '1px solid #efefef' }}>
                     <div>
@@ -591,7 +625,7 @@ export default function SettingsPage() {
                   </div>
                 ))}
               </div>
-              <button onClick={handlePrivacyUpdate} disabled={loading} style={{ padding: '10px 30px', background: loading ? '#b2dffc' : '#3897f0', color: 'white', border: 'none', borderRadius: 4, cursor: loading ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14 }}>
+              <button onClick={handlePrivacyUpdate} disabled={loading} className="btn-primary">
                 {loading ? 'Saving...' : 'Save Privacy Settings'}
               </button>
             </div>
@@ -604,7 +638,7 @@ export default function SettingsPage() {
                   <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 0', borderBottom: '1px solid #efefef' }}>
                     <div>
                       <h3 style={{ margin: 0, marginBottom: 4, fontSize: 16, fontWeight: 600 }}>{key.charAt(0).toUpperCase() + key.slice(1)}</h3>
-                      <p style={{ margin: 0, fontSize: 14, color: '#737373' }}>Get notifications for {key}</p>
+                      <p style={{ margin: 0, fontSize: 14, color: '#737373' }}>Receive notifications for {key}</p>
                     </div>
                     <label className="toggle-switch">
                       <input type="checkbox" checked={value} onChange={(e) => setNotificationForm({...notificationForm, [key]: e.target.checked})} disabled={loading} />
@@ -613,7 +647,7 @@ export default function SettingsPage() {
                   </div>
                 ))}
               </div>
-              <button onClick={handleNotificationUpdate} disabled={loading} style={{ padding: '10px 30px', background: loading ? '#b2dffc' : '#3897f0', color: 'white', border: 'none', borderRadius: 4, cursor: loading ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14 }}>
+              <button onClick={handleNotificationUpdate} disabled={loading} className="btn-primary">
                 {loading ? 'Saving...' : 'Save Notification Settings'}
               </button>
             </div>
@@ -623,32 +657,32 @@ export default function SettingsPage() {
             <div>
               <form onSubmit={handlePasswordChange} style={{ marginBottom: 40 }}>
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>Current Password</label>
-                  <input type="password" value={passwordForm.currentPassword} onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})} className="settings-input" required minLength={6} disabled={loading} placeholder="Enter your current password" />
+                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8, fontSize: 14 }}>Current Password</label>
+                  <input type="password" value={passwordForm.currentPassword} onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})} className="settings-input" required minLength={6} disabled={loading} placeholder="Enter current password" />
                 </div>
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>New Password</label>
+                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8, fontSize: 14 }}>New Password</label>
                   <input type="password" value={passwordForm.newPassword} onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})} className="settings-input" required minLength={6} disabled={loading} placeholder="Enter new password" />
-                  <p style={{ fontSize: 12, color: '#737373', marginTop: 4 }}>Password must be at least 6 characters long</p>
+                  <p style={{ fontSize: 12, color: '#737373', marginTop: 4 }}>Must be at least 6 characters</p>
                 </div>
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>Confirm New Password</label>
+                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8, fontSize: 14 }}>Confirm New Password</label>
                   <input type="password" value={passwordForm.confirmPassword} onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})} className="settings-input" required minLength={6} disabled={loading} placeholder="Confirm new password" />
                   {passwordForm.confirmPassword && passwordForm.newPassword !== passwordForm.confirmPassword && (
                     <p style={{ fontSize: 12, color: '#ed4956', marginTop: 4 }}>Passwords do not match</p>
                   )}
                 </div>
-                <button type="submit" disabled={loading || passwordForm.newPassword !== passwordForm.confirmPassword} style={{ padding: '10px 30px', background: loading ? '#b2dffc' : '#3897f0', color: 'white', border: 'none', borderRadius: 4, cursor: loading ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14 }}>
-                  {loading ? 'Changing...' : 'Change Password'}
+                <button type="submit" disabled={loading || (passwordForm.newPassword && passwordForm.newPassword !== passwordForm.confirmPassword)} className="btn-primary">
+                  {loading ? 'Changing Password...' : 'Change Password'}
                 </button>
               </form>
 
-              <div style={{ background: '#fff5f5', border: '1px solid #fed7d7', borderRadius: 8, padding: 20 }}>
-                <h3 style={{ color: '#c53030', margin: '0 0 10px 0', fontSize: 18 }}>Danger Zone</h3>
+              <div style={{ background: '#fffaf0', border: '1px solid #fed7aa', borderRadius: 12, padding: 24 }}>
+                <h3 style={{ color: '#c53030', margin: '0 0 12px 0', fontSize: 18, fontWeight: 600 }}>Danger Zone</h3>
                 <div style={{ marginTop: 20 }}>
-                  <h4 style={{ margin: '0 0 8px 0', fontSize: 16 }}>Deactivate Account</h4>
+                  <h4 style={{ margin: '0 0 8px 0', fontSize: 16, fontWeight: 600 }}>Deactivate Account</h4>
                   <p style={{ color: '#737373', fontSize: 14, marginBottom: 15 }}>Temporarily disable your account. You can reactivate it anytime by logging in again.</p>
-                  <button onClick={handleDeactivate} disabled={loading} style={{ padding: '10px 30px', background: loading ? '#fbb' : '#ed4956', color: 'white', border: 'none', borderRadius: 4, cursor: loading ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14 }}>
+                  <button onClick={handleDeactivate} disabled={loading} className="btn-danger">
                     {loading ? 'Deactivating...' : 'Deactivate Account'}
                   </button>
                 </div>
