@@ -5,7 +5,9 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000/
 class SettingsAPI {
   constructor() {
     this.token = null;
-    this.baseURL = `${API_BASE_URL}/settings`;
+    // FIXED: Changed from /settings to /users to match backend routes
+    this.baseURL = `${API_BASE_URL}/users`;
+    this.authURL = `${API_BASE_URL}/auth`;
   }
 
   // Set authentication token
@@ -26,7 +28,7 @@ class SettingsAPI {
     return headers;
   }
 
-  // Get multipart headers for file uploads
+  // Get multipart headers for file uploads (NO Content-Type)
   getMultipartHeaders() {
     const headers = {};
 
@@ -34,6 +36,7 @@ class SettingsAPI {
       headers['Authorization'] = `Bearer ${this.token}`;
     }
 
+    // CRITICAL: Don't set Content-Type for FormData
     return headers;
   }
 
@@ -45,7 +48,7 @@ class SettingsAPI {
         ...options
       };
 
-      console.log(`�� Making request to: ${url}`);
+      console.log(`Making request to: ${url}`);
       
       const response = await fetch(url, config);
       
@@ -55,11 +58,11 @@ class SettingsAPI {
       }
 
       const data = await response.json();
-      console.log(`✅ Request successful:`, data);
+      console.log(`Request successful:`, data);
       
       return data;
     } catch (error) {
-      console.error(`❌ Request failed:`, error);
+      console.error(`Request failed:`, error);
       
       // Handle network errors
       if (error.name === 'TypeError' && error.message.includes('fetch')) {
@@ -80,18 +83,42 @@ class SettingsAPI {
    * @returns {Promise<Object>} User profile data
    */
   async getProfile() {
-    return await this.makeRequest(`${this.baseURL}/profile`, {
-      method: 'GET'
-    });
+    try {
+      // Try auth/me endpoint first
+      const response = await fetch(`${this.authURL}/me`, {
+        headers: this.getAuthHeaders()
+      });
+      
+      if (response.ok) {
+        return await response.json();
+      }
+      
+      // Fallback: decode token and get user by ID
+      if (this.token) {
+        const payload = JSON.parse(atob(this.token.split('.')[1]));
+        const userId = payload._id || payload.id || payload.userId;
+        
+        if (userId) {
+          return await this.makeRequest(`${this.baseURL}/${userId}`, {
+            method: 'GET'
+          });
+        }
+      }
+      
+      throw new Error('Could not load profile');
+    } catch (error) {
+      console.error('Get profile error:', error);
+      throw error;
+    }
   }
 
   /**
-   * Update account settings
+   * Update account settings (JSON)
    * @param {Object} accountData - Account data to update
    * @returns {Promise<Object>} Response object
    */
   async updateAccount(accountData) {
-    return await this.makeRequest(`${this.baseURL}/account`, {
+    return await this.makeRequest(`${this.baseURL}/profile`, {
       method: 'PUT',
       body: JSON.stringify(accountData)
     });
@@ -106,13 +133,13 @@ class SettingsAPI {
     try {
       const config = {
         method: 'PUT',
-        headers: this.getMultipartHeaders(),
+        headers: this.getMultipartHeaders(), // No Content-Type for FormData
         body: formData
       };
 
-      console.log(`🌐 Making multipart request to: ${this.baseURL}/account`);
+      console.log(`Making multipart request to: ${this.baseURL}/profile`);
       
-      const response = await fetch(`${this.baseURL}/account`, config);
+      const response = await fetch(`${this.baseURL}/profile`, config);
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -120,11 +147,11 @@ class SettingsAPI {
       }
 
       const data = await response.json();
-      console.log(`✅ Multipart request successful:`, data);
+      console.log(`Multipart request successful:`, data);
       
       return data;
     } catch (error) {
-      console.error(`❌ Multipart request failed:`, error);
+      console.error(`Multipart request failed:`, error);
       
       if (error.name === 'TypeError' && error.message.includes('fetch')) {
         throw new Error('Network error - please check your connection');
@@ -169,11 +196,12 @@ class SettingsAPI {
    * @returns {Promise<Object>} Response object
    */
   async changePassword(currentPassword, newPassword) {
-    return await this.makeRequest(`${this.baseURL}/password`, {
+    return await this.makeRequest(`${this.authURL}/change-password`, {
       method: 'PUT',
       body: JSON.stringify({
         currentPassword,
-        newPassword
+        newPassword,
+        confirmNewPassword: newPassword
       })
     });
   }
