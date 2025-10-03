@@ -83,8 +83,8 @@ class SettingsAPI {
   }
 
   async updateAccount(accountData) {
-    // Try profile endpoint for account updates
-    return await this.makeRequest(`${this.baseURL}/profile`, {
+    // FIXED: Changed from /profile to /account endpoint
+    return await this.makeRequest(`${this.baseURL}/account`, {
       method: 'PUT',
       body: JSON.stringify(accountData)
     });
@@ -278,14 +278,14 @@ export default function SettingsPage() {
     setLoading(true);
     
     try {
-      // Determine if we need FormData (for profile picture) or JSON
-      const hasFile = !!profilePictureFile;
+      // Determine if we need to update username/email or just profile info
       const hasUsernameOrEmail = accountForm.username !== user.username || accountForm.email !== user.email;
+      const hasFile = !!profilePictureFile;
       
       let response;
       
+      // If username or email changed, use the /account endpoint (JSON)
       if (hasUsernameOrEmail) {
-        // Use /account endpoint for username/email changes (JSON only)
         const accountData = {
           username: accountForm.username.trim(),
           email: accountForm.email.trim(),
@@ -298,7 +298,7 @@ export default function SettingsPage() {
         response = await settingsAPI.updateAccount(accountData);
       }
       
-      // If there's a file or if we didn't change username/email, use /profile endpoint
+      // If there's a file or only profile info changed, use /profile endpoint (FormData)
       if (hasFile || !hasUsernameOrEmail) {
         const formData = new FormData();
         formData.append('fullName', accountForm.fullName.trim());
