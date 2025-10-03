@@ -81,6 +81,13 @@ class SettingsAPI {
     }
   }
 
+  async updateAccount(accountData) {
+    return await this.makeRequest(`${this.baseURL}/account`, {
+      method: 'PUT',
+      body: JSON.stringify(accountData)
+    });
+  }
+
   async updatePrivacy(privacyData) {
     return await this.makeRequest(`${this.baseURL}/privacy`, {
       method: 'PUT',
@@ -274,57 +281,95 @@ export default function SettingsPage() {
     setLoading(true);
     
     try {
-      const formData = new FormData();
+      // Check if username or email changed
+      const usernameChanged = accountForm.username !== user.username;
+      const emailChanged = accountForm.email !== user.email;
+      const hasAccountChanges = usernameChanged || emailChanged;
       
-      if (accountForm.fullName.trim()) {
-        formData.append('fullName', accountForm.fullName.trim());
+      // If username/email changed, use /account endpoint (JSON)
+      if (hasAccountChanges) {
+        const accountData = {
+          username: accountForm.username.trim(),
+          email: accountForm.email.trim(),
+          fullName: accountForm.fullName.trim(),
+          bio: accountForm.bio.trim()
+        };
+        
+        if (accountForm.website?.trim()) accountData.website = accountForm.website.trim();
+        if (accountForm.phoneNumber?.trim()) accountData.phoneNumber = accountForm.phoneNumber.trim();
+        if (accountForm.gender) accountData.gender = accountForm.gender;
+        
+        const response = await settingsAPI.updateAccount(accountData);
+        
+        if (response.success && response.user) {
+          setUser(response.user);
+          setAccountForm({
+            username: response.user.username || '',
+            email: response.user.email || '',
+            fullName: response.user.fullName || '',
+            bio: response.user.bio || '',
+            website: response.user.website || '',
+            phoneNumber: response.user.phoneNumber || '',
+            gender: response.user.gender || ''
+          });
+          showMessage('Account updated successfully!', true);
+        } else {
+          throw new Error(response.error || 'Update failed');
+        }
       } else {
-        showMessage('Full name is required');
-        setLoading(false);
-        return;
-      }
-      
-      formData.append('bio', accountForm.bio.trim());
-      
-      if (accountForm.website?.trim()) {
-        formData.append('website', accountForm.website.trim());
-      }
-      
-      if (accountForm.phoneNumber?.trim()) {
-        formData.append('phoneNumber', accountForm.phoneNumber.trim());
-      }
-      
-      if (accountForm.gender) {
-        formData.append('gender', accountForm.gender);
-      }
-      
-      if (profilePictureFile) {
-        formData.append('profilePicture', profilePictureFile);
-      }
-      
-      const response = await settingsAPI.updateProfile(formData);
-      
-      if (response.success && response.user) {
-        setUser(response.user);
+        // Use /profile endpoint for other updates (FormData)
+        const formData = new FormData();
         
-        setAccountForm({
-          username: response.user.username || '',
-          email: response.user.email || '',
-          fullName: response.user.fullName || '',
-          bio: response.user.bio || '',
-          website: response.user.website || '',
-          phoneNumber: response.user.phoneNumber || '',
-          gender: response.user.gender || ''
-        });
+        if (accountForm.fullName.trim()) {
+          formData.append('fullName', accountForm.fullName.trim());
+        } else {
+          showMessage('Full name is required');
+          setLoading(false);
+          return;
+        }
         
-        showMessage('Profile updated successfully!', true);
-        setProfilePictureFile(null);
-        setPreviewUrl(null);
+        formData.append('bio', accountForm.bio.trim());
         
-        const fileInput = document.querySelector('input[type="file"]');
-        if (fileInput) fileInput.value = '';
-      } else {
-        throw new Error(response.error || 'Update failed');
+        if (accountForm.website?.trim()) {
+          formData.append('website', accountForm.website.trim());
+        }
+        
+        if (accountForm.phoneNumber?.trim()) {
+          formData.append('phoneNumber', accountForm.phoneNumber.trim());
+        }
+        
+        if (accountForm.gender) {
+          formData.append('gender', accountForm.gender);
+        }
+        
+        if (profilePictureFile) {
+          formData.append('profilePicture', profilePictureFile);
+        }
+        
+        const response = await settingsAPI.updateProfile(formData);
+        
+        if (response.success && response.user) {
+          setUser(response.user);
+          
+          setAccountForm({
+            username: response.user.username || '',
+            email: response.user.email || '',
+            fullName: response.user.fullName || '',
+            bio: response.user.bio || '',
+            website: response.user.website || '',
+            phoneNumber: response.user.phoneNumber || '',
+            gender: response.user.gender || ''
+          });
+          
+          showMessage('Profile updated successfully!', true);
+          setProfilePictureFile(null);
+          setPreviewUrl(null);
+          
+          const fileInput = document.querySelector('input[type="file"]');
+          if (fileInput) fileInput.value = '';
+        } else {
+          throw new Error(response.error || 'Update failed');
+        }
       }
     } catch (updateError) {
       console.error('Account update error:', updateError);
@@ -527,13 +572,28 @@ export default function SettingsPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
                 <div>
                   <label style={{ display: 'block', fontWeight: 600, marginBottom: 8, fontSize: 14 }}>Username</label>
-                  <input type="text" value={accountForm.username} className="settings-input" disabled style={{ background: '#f7f7f7', color: '#8e8e8e', cursor: 'not-allowed' }} />
-                  <p style={{ fontSize: 11, color: '#737373', marginTop: 4 }}>Username cannot be changed</p>
+                  <input 
+                    type="text" 
+                    value={accountForm.username} 
+                    onChange={(e) => setAccountForm({...accountForm, username: e.target.value})}
+                    className="settings-input" 
+                    disabled={loading || initialLoading}
+                    minLength={3}
+                    maxLength={30}
+                    pattern="[a-zA-Z0-9_]+"
+                  />
+                  <p style={{ fontSize: 11, color: '#737373', marginTop: 4 }}>3-30 characters, letters, numbers, and underscores only</p>
                 </div>
                 <div>
                   <label style={{ display: 'block', fontWeight: 600, marginBottom: 8, fontSize: 14 }}>Email</label>
-                  <input type="email" value={accountForm.email} className="settings-input" disabled style={{ background: '#f7f7f7', color: '#8e8e8e', cursor: 'not-allowed' }} />
-                  <p style={{ fontSize: 11, color: '#737373', marginTop: 4 }}>Email cannot be changed</p>
+                  <input 
+                    type="email" 
+                    value={accountForm.email} 
+                    onChange={(e) => setAccountForm({...accountForm, email: e.target.value})}
+                    className="settings-input" 
+                    disabled={loading || initialLoading}
+                  />
+                  <p style={{ fontSize: 11, color: '#737373', marginTop: 4 }}>Must be a valid email address</p>
                 </div>
               </div>
 
