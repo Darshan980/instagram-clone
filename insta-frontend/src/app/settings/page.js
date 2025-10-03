@@ -12,14 +12,16 @@ export default function SettingsPage() {
   const [profilePictureFile, setProfilePictureFile] = useState(null);
 
   const [accountForm, setAccountForm] = useState({
-    username: '',
-    email: '',
     fullName: '',
     bio: '',
     website: '',
     phoneNumber: '',
     gender: ''
   });
+
+  // Separate form for username (read-only display)
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
 
   const [privacyForm, setPrivacyForm] = useState({
     isPrivate: false,
@@ -96,10 +98,10 @@ export default function SettingsPage() {
         }
         
         setUser(userData);
+        setUsername(userData.username || '');
+        setEmail(userData.email || '');
         
         setAccountForm({
-          username: userData.username || '',
-          email: userData.email || '',
           fullName: userData.fullName || '',
           bio: userData.bio || '',
           website: userData.website || '',
@@ -173,34 +175,54 @@ export default function SettingsPage() {
     setLoading(true);
     
     try {
-      console.log('Updating account - Bio:', accountForm.bio, 'Length:', accountForm.bio?.length || 0);
+      console.log('=== ACCOUNT UPDATE START ===');
+      console.log('Form data:', {
+        fullName: accountForm.fullName,
+        bio: accountForm.bio,
+        bioLength: accountForm.bio?.length || 0,
+        website: accountForm.website,
+        phoneNumber: accountForm.phoneNumber,
+        gender: accountForm.gender,
+        hasFile: !!profilePictureFile
+      });
       
       const formData = new FormData();
       
-      formData.append('fullName', accountForm.fullName || '');
-      formData.append('bio', accountForm.bio || '');
+      // Add all fields - backend will handle them
+      formData.append('fullName', accountForm.fullName.trim());
+      formData.append('bio', accountForm.bio.trim());
       
-      if (accountForm.website) formData.append('website', accountForm.website);
-      if (accountForm.phoneNumber) formData.append('phoneNumber', accountForm.phoneNumber);
-      if (accountForm.gender) formData.append('gender', accountForm.gender);
+      if (accountForm.website?.trim()) {
+        formData.append('website', accountForm.website.trim());
+      }
+      if (accountForm.phoneNumber?.trim()) {
+        formData.append('phoneNumber', accountForm.phoneNumber.trim());
+      }
+      if (accountForm.gender) {
+        formData.append('gender', accountForm.gender);
+      }
       
       if (profilePictureFile) {
         formData.append('profilePicture', profilePictureFile);
       }
       
+      console.log('Calling settingsAPI.updateProfile...');
       const response = await settingsAPI.updateProfile(formData);
+      console.log('Response received:', response);
       
       if (response.success && response.user) {
+        console.log('Update successful, new user data:', response.user);
+        
+        // Update local state with fresh data from server
         setUser(response.user);
         
-        setAccountForm(prev => ({
-          ...prev,
+        setAccountForm({
           fullName: response.user.fullName || '',
           bio: response.user.bio || '',
           website: response.user.website || '',
           phoneNumber: response.user.phoneNumber || '',
           gender: response.user.gender || ''
-        }));
+        });
         
         showMessage('Account updated successfully');
         setProfilePictureFile(null);
@@ -209,6 +231,7 @@ export default function SettingsPage() {
         if (fileInput) fileInput.value = '';
         
       } else {
+        console.error('Update failed:', response.error);
         throw new Error(response.error || 'Update failed');
       }
     } catch (updateError) {
@@ -216,6 +239,7 @@ export default function SettingsPage() {
       showMessage(updateError.message || 'Failed to update account');
     } finally {
       setLoading(false);
+      console.log('=== ACCOUNT UPDATE END ===');
     }
   };
 
@@ -431,31 +455,29 @@ export default function SettingsPage() {
                     <label className="form-label">Username</label>
                     <input
                       type="text"
-                      value={accountForm.username}
-                      onChange={(e) => setAccountForm({...accountForm, username: e.target.value})}
+                      value={username}
                       className="form-input"
-                      required
-                      minLength={3}
-                      maxLength={30}
-                      disabled={loading}
+                      disabled
+                      style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
                     />
+                    <p className="field-help">Username cannot be changed</p>
                   </div>
 
                   <div className="form-group">
                     <label className="form-label">Email</label>
                     <input
                       type="email"
-                      value={accountForm.email}
-                      onChange={(e) => setAccountForm({...accountForm, email: e.target.value})}
+                      value={email}
                       className="form-input"
-                      required
-                      disabled={loading}
+                      disabled
+                      style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
                     />
+                    <p className="field-help">Email cannot be changed here</p>
                   </div>
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Full Name</label>
+                  <label className="form-label">Full Name *</label>
                   <input
                     type="text"
                     value={accountForm.fullName}
@@ -464,6 +486,7 @@ export default function SettingsPage() {
                     required
                     maxLength={50}
                     disabled={loading}
+                    placeholder="Enter your full name"
                   />
                 </div>
 
@@ -501,6 +524,7 @@ export default function SettingsPage() {
                       value={accountForm.phoneNumber}
                       onChange={(e) => setAccountForm({...accountForm, phoneNumber: e.target.value})}
                       className="form-input"
+                      placeholder="+1 234 567 8900"
                       disabled={loading}
                     />
                   </div>
