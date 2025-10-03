@@ -52,7 +52,7 @@ export default function SettingsPage() {
     }
   }, []);
 
-  const showMessage = useCallback((msg, isError = false) => {
+  const showMessage = useCallback((msg) => {
     setMessage(msg);
     setTimeout(() => setMessage(''), 5000);
   }, []);
@@ -72,7 +72,7 @@ export default function SettingsPage() {
                     sessionStorage.getItem('token');
       
       if (!token) {
-        showMessage('Please log in to access settings', true);
+        showMessage('Please log in to access settings');
         setTimeout(() => window.location.href = '/login', 2000);
         return;
       }
@@ -80,7 +80,7 @@ export default function SettingsPage() {
       const tokenParts = token.split('.');
       if (tokenParts.length !== 3) {
         clearAllTokens();
-        showMessage('Invalid session, please log in again', true);
+        showMessage('Invalid session, please log in again');
         setTimeout(() => window.location.href = '/login', 2000);
         return;
       }
@@ -94,8 +94,6 @@ export default function SettingsPage() {
         if (!userData) {
           throw new Error('No user data in response');
         }
-        
-        console.log('User data loaded - Bio length:', userData.bio?.length || 0);
         
         setUser(userData);
         
@@ -134,12 +132,12 @@ export default function SettingsPage() {
           loadError.message.includes('401') ||
           loadError.message.includes('Unauthorized')) {
         clearAllTokens();
-        showMessage('Session expired. Please log in again.', true);
+        showMessage('Session expired. Please log in again.');
         setTimeout(() => window.location.href = '/login', 2000);
       } else if (loadError.message.includes('Network error')) {
-        showMessage('Connection error. Please check your internet.', true);
+        showMessage('Connection error. Please check your internet.');
       } else {
-        showMessage(`Failed to load user data: ${loadError.message}`, true);
+        showMessage(`Failed to load user data: ${loadError.message}`);
       }
       
     } finally {
@@ -158,11 +156,11 @@ export default function SettingsPage() {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        showMessage('File size must be less than 5MB', true);
+        showMessage('File size must be less than 5MB');
         return;
       }
       if (!file.type.startsWith('image/')) {
-        showMessage('Please select a valid image file', true);
+        showMessage('Please select a valid image file');
         return;
       }
       setProfilePictureFile(file);
@@ -170,7 +168,6 @@ export default function SettingsPage() {
     }
   };
 
-  // FIXED: This is the key fix for bio updates
   const handleAccountUpdate = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -178,12 +175,10 @@ export default function SettingsPage() {
     try {
       console.log('Updating account - Bio:', accountForm.bio, 'Length:', accountForm.bio?.length || 0);
       
-      // Always use FormData for consistency
       const formData = new FormData();
       
-      // CRITICAL: Explicitly add bio even if empty
       formData.append('fullName', accountForm.fullName || '');
-      formData.append('bio', accountForm.bio || ''); // This ensures empty bio is sent
+      formData.append('bio', accountForm.bio || '');
       
       if (accountForm.website) formData.append('website', accountForm.website);
       if (accountForm.phoneNumber) formData.append('phoneNumber', accountForm.phoneNumber);
@@ -193,14 +188,11 @@ export default function SettingsPage() {
         formData.append('profilePicture', profilePictureFile);
       }
       
-      console.log('Sending bio:', formData.get('bio'), 'Length:', formData.get('bio')?.length);
-      
       const response = await settingsAPI.updateProfile(formData);
       
       if (response.success && response.user) {
         setUser(response.user);
         
-        // Sync form with response
         setAccountForm(prev => ({
           ...prev,
           fullName: response.user.fullName || '',
@@ -216,14 +208,12 @@ export default function SettingsPage() {
         const fileInput = document.querySelector('input[type="file"]');
         if (fileInput) fileInput.value = '';
         
-        console.log('Bio updated successfully. New length:', response.user.bio?.length || 0);
-        
       } else {
         throw new Error(response.error || 'Update failed');
       }
     } catch (updateError) {
       console.error('Account update error:', updateError);
-      showMessage(updateError.message || 'Failed to update account', true);
+      showMessage(updateError.message || 'Failed to update account');
     } finally {
       setLoading(false);
     }
@@ -241,7 +231,7 @@ export default function SettingsPage() {
       }
     } catch (error) {
       console.error('Privacy update error:', error);
-      showMessage(error.message, true);
+      showMessage(error.message);
     } finally {
       setLoading(false);
     }
@@ -259,7 +249,7 @@ export default function SettingsPage() {
       }
     } catch (error) {
       console.error('Notification update error:', error);
-      showMessage(error.message, true);
+      showMessage(error.message);
     } finally {
       setLoading(false);
     }
@@ -269,15 +259,15 @@ export default function SettingsPage() {
     e.preventDefault();
     
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      showMessage('New passwords do not match', true);
+      showMessage('New passwords do not match');
       return;
     }
     if (passwordForm.newPassword.length < 6) {
-      showMessage('New password must be at least 6 characters long', true);
+      showMessage('New password must be at least 6 characters long');
       return;
     }
     if (passwordForm.currentPassword === passwordForm.newPassword) {
-      showMessage('New password must be different from current password', true);
+      showMessage('New password must be different from current password');
       return;
     }
 
@@ -296,7 +286,7 @@ export default function SettingsPage() {
       }
     } catch (error) {
       console.error('Password change error:', error);
-      showMessage(error.message, true);
+      showMessage(error.message);
     } finally {
       setLoading(false);
     }
@@ -322,7 +312,7 @@ export default function SettingsPage() {
       }
     } catch (error) {
       console.error('Deactivation error:', error);
-      showMessage(error.message, true);
+      showMessage(error.message);
       setLoading(false);
     }
   };
@@ -343,7 +333,7 @@ export default function SettingsPage() {
       <div className="error-container">
         <div className="error-content">
           <h2 className="error-title">Unable to Load Settings</h2>
-          <p className="error-text">We couldn't load your account settings.</p>
+          <p className="error-text">We couldn&apos;t load your account settings.</p>
           {message && <p className="error-message">{message}</p>}
           <div className="error-actions">
             <button onClick={() => window.location.reload()} className="retry-button">
@@ -560,7 +550,7 @@ export default function SettingsPage() {
                   <div className="setting-item">
                     <div className="setting-info">
                       <h3 className="setting-title">Show Online Status</h3>
-                      <p className="setting-description">Let others see when you're active</p>
+                      <p className="setting-description">Let others see when you&apos;re active</p>
                     </div>
                     <label className="toggle-switch">
                       <input
@@ -592,7 +582,7 @@ export default function SettingsPage() {
                   <div className="setting-item">
                     <div className="setting-info">
                       <h3 className="setting-title">Messages from Strangers</h3>
-                      <p className="setting-description">Allow messages from people you don't follow</p>
+                      <p className="setting-description">Allow messages from people you don&apos;t follow</p>
                     </div>
                     <label className="toggle-switch">
                       <input
