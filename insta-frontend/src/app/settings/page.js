@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { settingsAPI } from '../../utils/settings';
 import './settings.css';
 
@@ -11,7 +11,6 @@ export default function SettingsPage() {
   const [message, setMessage] = useState('');
   const [profilePictureFile, setProfilePictureFile] = useState(null);
 
-  // Form states with proper initialization
   const [accountForm, setAccountForm] = useState({
     username: '',
     email: '',
@@ -43,60 +42,51 @@ export default function SettingsPage() {
     confirmPassword: ''
   });
 
-  const loadUserData = async () => {
+  const clearAllTokens = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('instagram_token');
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('token');
+      sessionStorage.removeItem('instagram_token');
+      sessionStorage.removeItem('token');
+    }
+  }, []);
+
+  const showMessage = useCallback((msg, isError = false) => {
+    setMessage(msg);
+    setTimeout(() => setMessage(''), 5000);
+  }, []);
+
+  const loadUserData = useCallback(async () => {
     try {
-      console.log('🔄 Starting loadUserData...');
+      console.log('Loading user data...');
       
       if (typeof window === 'undefined') {
-        console.log('❌ Window is undefined, skipping load');
         return;
       }
       
-      // Get token with multiple fallbacks
       const token = localStorage.getItem('instagram_token') || 
                     localStorage.getItem('authToken') || 
                     localStorage.getItem('token') ||
                     sessionStorage.getItem('instagram_token') ||
                     sessionStorage.getItem('token');
       
-      console.log('🔑 Token search result:', { 
-        found: !!token, 
-        length: token?.length,
-        source: token ? (
-          localStorage.getItem('instagram_token') ? 'instagram_token' :
-          localStorage.getItem('authToken') ? 'authToken' :
-          localStorage.getItem('token') ? 'token' :
-          sessionStorage.getItem('instagram_token') ? 'session_instagram_token' :
-          'session_token'
-        ) : 'none'
-      });
-      
       if (!token) {
-        console.log('❌ No token found, redirecting to login');
         showMessage('Please log in to access settings', true);
-        setTimeout(() => {
-          window.location.href = '/login';
-        }, 2000);
+        setTimeout(() => window.location.href = '/login', 2000);
         return;
       }
 
-      // Validate token format (basic JWT check)
       const tokenParts = token.split('.');
       if (tokenParts.length !== 3) {
-        console.log('❌ Invalid token format, clearing and redirecting');
         clearAllTokens();
         showMessage('Invalid session, please log in again', true);
-        setTimeout(() => {
-          window.location.href = '/login';
-        }, 2000);
+        setTimeout(() => window.location.href = '/login', 2000);
         return;
       }
 
-      console.log('✅ Valid token found, setting up API and loading user data...');
       settingsAPI.setToken(token);
-      
       const response = await settingsAPI.getProfile();
-      console.log('👤 User data response:', response);
       
       if (response.success || response.user) {
         const userData = response.user || response.data?.user || response.data;
@@ -105,15 +95,10 @@ export default function SettingsPage() {
           throw new Error('No user data in response');
         }
         
-        console.log('✅ User data loaded:', {
-          id: userData._id,
-          username: userData.username,
-          email: userData.email
-        });
+        console.log('User data loaded - Bio length:', userData.bio?.length || 0);
         
         setUser(userData);
         
-        // Set form data with proper fallbacks and validation
         setAccountForm({
           username: userData.username || '',
           email: userData.email || '',
@@ -139,27 +124,20 @@ export default function SettingsPage() {
           messages: userData.settings?.notifications?.messages ?? true
         });
         
-        console.log('✅ All form states initialized');
-        
       } else {
         throw new Error(response.error || 'Failed to load user data');
       }
     } catch (loadError) {
-      console.error('❌ Load user data error:', loadError);
+      console.error('Load user data error:', loadError);
       
-      // Check if it's an authentication error
       if (loadError.message.includes('Authentication failed') || 
           loadError.message.includes('401') ||
           loadError.message.includes('Unauthorized')) {
-        console.log('🔐 Authentication error detected, clearing tokens');
         clearAllTokens();
         showMessage('Session expired. Please log in again.', true);
-        setTimeout(() => {
-          window.location.href = '/login';
-        }, 2000);
-      } else if (loadError.message.includes('Network error') || 
-                 loadError.message.includes('fetch')) {
-        showMessage('Connection error. Please check your internet and try again.', true);
+        setTimeout(() => window.location.href = '/login', 2000);
+      } else if (loadError.message.includes('Network error')) {
+        showMessage('Connection error. Please check your internet.', true);
       } else {
         showMessage(`Failed to load user data: ${loadError.message}`, true);
       }
@@ -167,39 +145,19 @@ export default function SettingsPage() {
     } finally {
       setInitialLoading(false);
     }
-  };
+  }, [clearAllTokens, showMessage]);
 
   useEffect(() => {
-    // Ensure client-side only execution with proper delay
     if (typeof window !== 'undefined') {
-      // Add a small delay to ensure DOM is ready
-      const timer = setTimeout(() => {
-        loadUserData();
-      }, 200);
-      
+      const timer = setTimeout(() => loadUserData(), 200);
       return () => clearTimeout(timer);
     }
   }, [loadUserData]);
 
-  const clearAllTokens = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('instagram_token');
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('token');
-      sessionStorage.removeItem('instagram_token');
-      sessionStorage.removeItem('token');
-    }
-  };
-
-  const showMessage = (msg, isError = false) => {
-    setMessage(msg);
-    setTimeout(() => setMessage(''), 5000); // Increased timeout
-  };
-
   const handleProfilePictureChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      if (file.size > 5 * 1024 * 1024) {
         showMessage('File size must be less than 5MB', true);
         return;
       }
@@ -212,48 +170,60 @@ export default function SettingsPage() {
     }
   };
 
+  // FIXED: This is the key fix for bio updates
   const handleAccountUpdate = async (e) => {
     e.preventDefault();
     setLoading(true);
     
     try {
-      console.log('🔄 Updating account...', { hasProfilePicture: !!profilePictureFile });
+      console.log('Updating account - Bio:', accountForm.bio, 'Length:', accountForm.bio?.length || 0);
       
-      let response;
+      // Always use FormData for consistency
+      const formData = new FormData();
       
-      // If there's a profile picture, use FormData
+      // CRITICAL: Explicitly add bio even if empty
+      formData.append('fullName', accountForm.fullName || '');
+      formData.append('bio', accountForm.bio || ''); // This ensures empty bio is sent
+      
+      if (accountForm.website) formData.append('website', accountForm.website);
+      if (accountForm.phoneNumber) formData.append('phoneNumber', accountForm.phoneNumber);
+      if (accountForm.gender) formData.append('gender', accountForm.gender);
+      
       if (profilePictureFile) {
-        const formData = new FormData();
-        Object.keys(accountForm).forEach(key => {
-          if (accountForm[key] !== undefined && accountForm[key] !== '') {
-            formData.append(key, accountForm[key]);
-          }
-        });
         formData.append('profilePicture', profilePictureFile);
-        
-        response = await settingsAPI.updateProfile(formData);
-      } else {
-        response = await settingsAPI.updateAccount(accountForm);
       }
       
-      console.log('✅ Account update response:', response);
+      console.log('Sending bio:', formData.get('bio'), 'Length:', formData.get('bio')?.length);
+      
+      const response = await settingsAPI.updateProfile(formData);
       
       if (response.success && response.user) {
         setUser(response.user);
+        
+        // Sync form with response
+        setAccountForm(prev => ({
+          ...prev,
+          fullName: response.user.fullName || '',
+          bio: response.user.bio || '',
+          website: response.user.website || '',
+          phoneNumber: response.user.phoneNumber || '',
+          gender: response.user.gender || ''
+        }));
+        
         showMessage('Account updated successfully');
         setProfilePictureFile(null);
         
-        // Reset file input
         const fileInput = document.querySelector('input[type="file"]');
         if (fileInput) fileInput.value = '';
+        
+        console.log('Bio updated successfully. New length:', response.user.bio?.length || 0);
         
       } else {
         throw new Error(response.error || 'Update failed');
       }
     } catch (updateError) {
-      console.error('❌ Account update error:', updateError);
-      const isError = true;
-      showMessage(updateError.message, isError);
+      console.error('Account update error:', updateError);
+      showMessage(updateError.message || 'Failed to update account', true);
     } finally {
       setLoading(false);
     }
@@ -261,21 +231,17 @@ export default function SettingsPage() {
 
   const handlePrivacyUpdate = async () => {
     setLoading(true);
-    
     try {
-      console.log('🔄 Updating privacy settings...', privacyForm);
-      
       const response = await settingsAPI.updatePrivacy(privacyForm);
-      
       if (response.success && response.user) {
         setUser(response.user);
         showMessage('Privacy settings updated successfully');
       } else {
         throw new Error(response.error || 'Update failed');
       }
-    } catch (privacyError) {
-      console.error('❌ Privacy update error:', privacyError);
-      showMessage(privacyError.message, true);
+    } catch (error) {
+      console.error('Privacy update error:', error);
+      showMessage(error.message, true);
     } finally {
       setLoading(false);
     }
@@ -283,21 +249,17 @@ export default function SettingsPage() {
 
   const handleNotificationUpdate = async () => {
     setLoading(true);
-    
     try {
-      console.log('🔄 Updating notification settings...', notificationForm);
-      
       const response = await settingsAPI.updateNotifications(notificationForm);
-      
       if (response.success && response.user) {
         setUser(response.user);
         showMessage('Notification settings updated successfully');
       } else {
         throw new Error(response.error || 'Update failed');
       }
-    } catch (notificationError) {
-      console.error('❌ Notification update error:', notificationError);
-      showMessage(notificationError.message, true);
+    } catch (error) {
+      console.error('Notification update error:', error);
+      showMessage(error.message, true);
     } finally {
       setLoading(false);
     }
@@ -310,22 +272,17 @@ export default function SettingsPage() {
       showMessage('New passwords do not match', true);
       return;
     }
-
     if (passwordForm.newPassword.length < 6) {
       showMessage('New password must be at least 6 characters long', true);
       return;
     }
-
     if (passwordForm.currentPassword === passwordForm.newPassword) {
       showMessage('New password must be different from current password', true);
       return;
     }
 
     setLoading(true);
-    
     try {
-      console.log('🔄 Changing password...');
-      
       const response = await settingsAPI.changePassword(
         passwordForm.currentPassword,
         passwordForm.newPassword
@@ -334,13 +291,12 @@ export default function SettingsPage() {
       if (response.success) {
         setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
         showMessage('Password updated successfully');
-        console.log('✅ Password changed successfully');
       } else {
         throw new Error(response.error || 'Password change failed');
       }
-    } catch (passwordError) {
-      console.error('❌ Password change error:', passwordError);
-      showMessage(passwordError.message, true);
+    } catch (error) {
+      console.error('Password change error:', error);
+      showMessage(error.message, true);
     } finally {
       setLoading(false);
     }
@@ -355,28 +311,22 @@ export default function SettingsPage() {
     
     setLoading(true);
     try {
-      console.log('🔄 Deactivating account...');
-      
       const response = await settingsAPI.deactivateAccount();
       
       if (response.success) {
-        console.log('✅ Account deactivated successfully');
         clearAllTokens();
-        showMessage('Account deactivated successfully. Redirecting...', false);
-        setTimeout(() => {
-          window.location.href = '/login';
-        }, 3000);
+        showMessage('Account deactivated successfully. Redirecting...');
+        setTimeout(() => window.location.href = '/login', 3000);
       } else {
         throw new Error(response.error || 'Deactivation failed');
       }
-    } catch (deactivateError) {
-      console.error('❌ Deactivation error:', deactivateError);
-      showMessage(deactivateError.message, true);
+    } catch (error) {
+      console.error('Deactivation error:', error);
+      showMessage(error.message, true);
       setLoading(false);
     }
   };
 
-  // Loading state
   if (initialLoading) {
     return (
       <div className="loading-container">
@@ -388,25 +338,18 @@ export default function SettingsPage() {
     );
   }
 
-  // Error state - no user data
   if (!user) {
     return (
       <div className="error-container">
         <div className="error-content">
           <h2 className="error-title">Unable to Load Settings</h2>
-          <p className="error-text">We couldn&apos;t load your account settings. This might be due to a connection issue or expired session.</p>
+          <p className="error-text">We couldn't load your account settings.</p>
           {message && <p className="error-message">{message}</p>}
           <div className="error-actions">
-            <button 
-              onClick={() => window.location.reload()} 
-              className="retry-button"
-            >
+            <button onClick={() => window.location.reload()} className="retry-button">
               Try Again
             </button>
-            <button 
-              onClick={() => window.location.href = '/login'} 
-              className="login-button"
-            >
+            <button onClick={() => window.location.href = '/login'} className="login-button">
               Go to Login
             </button>
           </div>
@@ -419,11 +362,7 @@ export default function SettingsPage() {
     <div className="settings-page">
       <div className="settings-container">
         <div className="settings-header">
-          <button 
-            onClick={() => window.history.back()} 
-            className="back-button"
-            aria-label="Go back"
-          >
+          <button onClick={() => window.history.back()} className="back-button">
             ← Back
           </button>
           <h1 className="settings-title">Settings</h1>
@@ -431,11 +370,8 @@ export default function SettingsPage() {
         
         {message && (
           <div className={`message ${
-            message.includes('successfully') || 
-            message.includes('updated') ||
-            message.includes('Selected') 
-              ? 'message-success' 
-              : 'message-error'
+            message.includes('successfully') || message.includes('Selected') 
+              ? 'message-success' : 'message-error'
           }`}>
             {message}
           </div>
@@ -470,9 +406,7 @@ export default function SettingsPage() {
                     src={user.profilePicture || '/default-avatar.png'}
                     alt="Profile"
                     className="profile-picture"
-                    onError={(e) => {
-                      e.target.src = '/default-avatar.png';
-                    }}
+                    onError={(e) => { e.target.src = '/default-avatar.png'; }}
                   />
                   <div className="profile-picture-upload">
                     <label className="form-label">Profile Picture</label>
@@ -485,7 +419,7 @@ export default function SettingsPage() {
                     />
                     {profilePictureFile && (
                       <p className="file-selected">
-                        New image selected: {profilePictureFile.name}
+                        New image: {profilePictureFile.name}
                         <button
                           type="button"
                           onClick={() => {
@@ -513,8 +447,6 @@ export default function SettingsPage() {
                       required
                       minLength={3}
                       maxLength={30}
-                      pattern="[a-zA-Z0-9_]+"
-                      title="Username can only contain letters, numbers, and underscores"
                       disabled={loading}
                     />
                   </div>
@@ -599,11 +531,7 @@ export default function SettingsPage() {
                   </select>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="submit-button"
-                >
+                <button type="submit" disabled={loading} className="submit-button">
                   {loading && <div className="button-spinner"></div>}
                   {loading ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -623,7 +551,6 @@ export default function SettingsPage() {
                         type="checkbox"
                         checked={privacyForm.isPrivate}
                         onChange={(e) => setPrivacyForm({...privacyForm, isPrivate: e.target.checked})}
-                        className="toggle-input"
                         disabled={loading}
                       />
                       <span className="toggle-slider"></span>
@@ -633,14 +560,13 @@ export default function SettingsPage() {
                   <div className="setting-item">
                     <div className="setting-info">
                       <h3 className="setting-title">Show Online Status</h3>
-                      <p className="setting-description">Let others see when you&apos;re active</p>
+                      <p className="setting-description">Let others see when you're active</p>
                     </div>
                     <label className="toggle-switch">
                       <input
                         type="checkbox"
                         checked={privacyForm.showOnlineStatus}
                         onChange={(e) => setPrivacyForm({...privacyForm, showOnlineStatus: e.target.checked})}
-                        className="toggle-input"
                         disabled={loading}
                       />
                       <span className="toggle-slider"></span>
@@ -657,7 +583,6 @@ export default function SettingsPage() {
                         type="checkbox"
                         checked={privacyForm.allowTagging}
                         onChange={(e) => setPrivacyForm({...privacyForm, allowTagging: e.target.checked})}
-                        className="toggle-input"
                         disabled={loading}
                       />
                       <span className="toggle-slider"></span>
@@ -667,14 +592,13 @@ export default function SettingsPage() {
                   <div className="setting-item">
                     <div className="setting-info">
                       <h3 className="setting-title">Messages from Strangers</h3>
-                      <p className="setting-description">Allow direct messages from people you don&apos;t follow</p>
+                      <p className="setting-description">Allow messages from people you don't follow</p>
                     </div>
                     <label className="toggle-switch">
                       <input
                         type="checkbox"
                         checked={privacyForm.allowMessagesFromStrangers}
                         onChange={(e) => setPrivacyForm({...privacyForm, allowMessagesFromStrangers: e.target.checked})}
-                        className="toggle-input"
                         disabled={loading}
                       />
                       <span className="toggle-slider"></span>
@@ -682,11 +606,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <button
-                  onClick={handlePrivacyUpdate}
-                  disabled={loading}
-                  className="submit-button"
-                >
+                <button onClick={handlePrivacyUpdate} disabled={loading} className="submit-button">
                   {loading && <div className="button-spinner"></div>}
                   {loading ? 'Saving...' : 'Save Privacy Settings'}
                 </button>
@@ -700,14 +620,13 @@ export default function SettingsPage() {
                     <div key={key} className="setting-item">
                       <div className="setting-info">
                         <h3 className="setting-title">{key.charAt(0).toUpperCase() + key.slice(1)}</h3>
-                        <p className="setting-description">Get notifications when someone {key} your content</p>
+                        <p className="setting-description">Get notifications for {key}</p>
                       </div>
                       <label className="toggle-switch">
                         <input
                           type="checkbox"
                           checked={value}
                           onChange={(e) => setNotificationForm({...notificationForm, [key]: e.target.checked})}
-                          className="toggle-input"
                           disabled={loading}
                         />
                         <span className="toggle-slider"></span>
@@ -716,11 +635,7 @@ export default function SettingsPage() {
                   ))}
                 </div>
 
-                <button
-                  onClick={handleNotificationUpdate}
-                  disabled={loading}
-                  className="submit-button"
-                >
+                <button onClick={handleNotificationUpdate} disabled={loading} className="submit-button">
                   {loading && <div className="button-spinner"></div>}
                   {loading ? 'Saving...' : 'Save Notification Settings'}
                 </button>
@@ -793,13 +708,8 @@ export default function SettingsPage() {
                     <h4 className="danger-subtitle">Deactivate Account</h4>
                     <p className="danger-description">
                       Temporarily disable your account. You can reactivate it anytime by logging in again.
-                      Your profile, posts, and data will be hidden but preserved.
                     </p>
-                    <button
-                      onClick={handleDeactivate}
-                      disabled={loading}
-                      className="danger-button"
-                    >
+                    <button onClick={handleDeactivate} disabled={loading} className="danger-button">
                       {loading && <div className="button-spinner"></div>}
                       {loading ? 'Deactivating...' : 'Deactivate Account'}
                     </button>
