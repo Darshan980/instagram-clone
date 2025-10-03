@@ -450,7 +450,7 @@ export default function SettingsPage() {
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#fafafa' }}>
         <div style={{ textAlign: 'center', maxWidth: 400, padding: 20 }}>
           <h2 style={{ marginBottom: 10 }}>Unable to Load Settings</h2>
-          <p style={{ color: '#737373', marginBottom: 20 }}>We couldn't load your account settings.</p>
+          <p style={{ color: '#737373', marginBottom: 20 }}>We couldn&apos;t load your account settings.</p>
           <button onClick={() => window.location.reload()} style={{ padding: '10px 20px', marginRight: 10, background: '#3897f0', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
             Try Again
           </button>
@@ -586,9 +586,9 @@ export default function SettingsPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginBottom: 30 }}>
                 {[
                   { key: 'isPrivate', title: 'Private Account', desc: 'Only approved followers can see your posts' },
-                  { key: 'showOnlineStatus', title: 'Show Online Status', desc: 'Let others see when you\'re active' },
+                  { key: 'showOnlineStatus', title: 'Show Online Status', desc: 'Let others see when you are active' },
                   { key: 'allowTagging', title: 'Allow Tagging', desc: 'Let others tag you in their posts' },
-                  { key: 'allowMessagesFromStrangers', title: 'Messages from Strangers', desc: 'Allow messages from people you don\'t follow' }
+                  { key: 'allowMessagesFromStrangers', title: 'Messages from Strangers', desc: 'Allow messages from people you do not follow' }
                 ].map(({ key, title, desc }) => (
                   <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 0', borderBottom: '1px solid #efefef' }}>
                     <div>
