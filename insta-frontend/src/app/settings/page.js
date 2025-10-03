@@ -83,7 +83,8 @@ class SettingsAPI {
   }
 
   async updateAccount(accountData) {
-    return await this.makeRequest(`${this.baseURL}/account`, {
+    // Try profile endpoint for account updates
+    return await this.makeRequest(`${this.baseURL}/profile`, {
       method: 'PUT',
       body: JSON.stringify(accountData)
     });
