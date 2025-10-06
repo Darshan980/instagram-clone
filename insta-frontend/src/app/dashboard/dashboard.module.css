@@ -1393,19 +1393,19 @@
     display: none !important;
   }
   
-  /* Floating Messages Button - Show on mobile */
+  /* Floating Messages Button - Show on mobile at TOP */
   .floatingMessagesButton {
     display: flex !important;
     position: fixed;
-    bottom: 80px;
+    top: 20px;
     right: 20px;
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
     color: white;
     border: none;
-    font-size: 24px;
+    font-size: 22px;
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     z-index: 99;
@@ -1421,6 +1421,11 @@
   
   .floatingMessagesButton:active {
     transform: scale(0.95);
+  }
+  
+  /* Hide messages button on non-dashboard pages */
+  .floatingMessagesButton.hiddenOnOtherPages {
+    display: none !important;
   }
 }
 

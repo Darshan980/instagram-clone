@@ -389,3 +389,17 @@
     height: 32px;
   }
 }
+
+@media (max-width: 480px) {
+  .reelCard {
+    height: calc(100vh - 60px); /* Subtract bottom nav height */
+  }
+  
+  .video {
+    max-height: calc(100vh - 60px);
+  }
+  
+  .mainContainer {
+    height: calc(100vh - 60px);
+  }
+}
