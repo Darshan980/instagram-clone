@@ -1,0 +1,534 @@
+.container {
+  min-height: 100vh;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading,
+.error {
+  text-align: center;
+  color: white;
+  padding: 40px;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid rgba(255,255,255,0.3);
+  border-top: 3px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error h2 {
+  margin-bottom: 10px;
+  font-size: 24px;
+}
+
+.error p {
+  margin-bottom: 20px;
+  color: #ccc;
+}
+
+.backButton {
+  background: #0095f6;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.backButton:hover {
+  background: #1877f2;
+}
+
+.streamContainer {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  background: #000;
+}
+
+.videoArea {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a1a1a;
+}
+
+.liveVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #000;
+}
+
+.videoPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.placeholderContent {
+  text-align: center;
+  color: white;
+}
+
+.streamerAvatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 4px solid white;
+  object-fit: cover;
+  margin-bottom: 20px;
+}
+
+.liveBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ff4444;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.liveDot {
+  animation: blink 1.5s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.placeholderText {
+  font-size: 18px;
+  margin: 10px 0;
+}
+
+.placeholderSubtext {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.errorText {
+  font-size: 16px;
+  color: #ffcccc;
+  margin: 10px 0;
+  text-align: center;
+}
+
+.retryButton {
+  background: rgba(255, 255, 255, 0.9);
+  color: #667eea;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: all 0.2s;
+}
+
+.retryButton:hover {
+  background: white;
+  transform: scale(1.05);
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-top: 20px;
+}
+
+.streamOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+  pointer-events: none;
+}
+
+.streamOverlay > * {
+  pointer-events: auto;
+}
+
+.overlayTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.closeButton {
+  background: rgba(0,0,0,0.7);
+  color: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.closeButton:hover {
+  background: rgba(0,0,0,0.9);
+  transform: scale(1.1);
+}
+
+.viewerCount {
+  background: rgba(0,0,0,0.7);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.overlayBottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.streamerInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(0,0,0,0.7);
+  padding: 12px 16px;
+  border-radius: 12px;
+  color: white;
+}
+
+.streamerThumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.streamerInfo h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.streamerInfo p {
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.streamActions {
+  display: flex;
+  gap: 12px;
+}
+
+.actionButton {
+  background: rgba(0,0,0,0.7);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.actionButton:hover {
+  background: rgba(0,0,0,0.9);
+  transform: scale(1.05);
+}
+
+.actionButton.liked {
+  background: rgba(237, 73, 86, 0.9);
+}
+
+.endButton {
+  background: #ff4444;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.endButton:hover {
+  background: #cc0000;
+  transform: scale(1.05);
+}
+
+.chatSidebar {
+  width: 400px;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid #dbdbdb;
+}
+
+.chatHeader {
+  padding: 20px;
+  border-bottom: 1px solid #efefef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chatHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.commentCount {
+  background: #efefef;
+  color: #8e8e8e;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.streamDetails {
+  padding: 20px;
+  border-bottom: 1px solid #efefef;
+}
+
+.streamDetails h2 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.description {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: #8e8e8e;
+  line-height: 1.5;
+}
+
+.stats {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: #8e8e8e;
+}
+
+.commentsArea {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.noComments {
+  text-align: center;
+  padding: 40px 20px;
+  color: #8e8e8e;
+}
+
+.noComments p:first-child {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.noComments p:last-child {
+  font-size: 14px;
+}
+
+.commentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.comment {
+  display: flex;
+  gap: 12px;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.commentAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.commentContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.commentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.commentUser {
+  font-weight: 600;
+  font-size: 14px;
+  color: #262626;
+}
+
+.commentTime {
+  font-size: 12px;
+  color: #8e8e8e;
+}
+
+.commentText {
+  margin: 0;
+  font-size: 14px;
+  color: #262626;
+  word-wrap: break-word;
+  line-height: 1.4;
+}
+
+.commentForm {
+  padding: 16px 20px;
+  border-top: 1px solid #efefef;
+  display: flex;
+  gap: 12px;
+  background: white;
+}
+
+.commentInput {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid #dbdbdb;
+  border-radius: 24px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.commentInput:focus {
+  border-color: #0095f6;
+}
+
+.commentInput:disabled {
+  background: #fafafa;
+  cursor: not-allowed;
+}
+
+.sendButton {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: #0095f6;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sendButton:hover:not(:disabled) {
+  background: #1877f2;
+  transform: scale(1.1);
+}
+
+.sendButton:disabled {
+  background: #b2dffc;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1024px) {
+  .streamContainer {
+    flex-direction: column;
+  }
+
+  .videoArea {
+    height: 60vh;
+  }
+
+  .chatSidebar {
+    width: 100%;
+    height: 40vh;
+  }
+}
+
+@media (max-width: 768px) {
+  .videoArea {
+    height: 50vh;
+  }
+
+  .chatSidebar {
+    height: 50vh;
+  }
+
+  .streamOverlay {
+    padding: 12px;
+  }
+
+  .streamerInfo {
+    padding: 8px 12px;
+  }
+
+  .streamerThumb {
+    width: 36px;
+    height: 36px;
+  }
+
+  .streamerInfo h3 {
+    font-size: 14px;
+  }
+
+  .streamerInfo p {
+    font-size: 12px;
+  }
+}

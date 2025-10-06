@@ -108,6 +108,7 @@ const postRoutes = importRoute('./routes/post.js', 'post');
 const reelRoutes = importRoute('./routes/reel.js', 'reel');
 const storyRoutes = importRoute('./routes/story.js', 'story');
 const settingsRoutes = importRoute('./routes/settings/index.js', 'settings'); // New settings routes
+const liveRoutes = importRoute('./routes/live.js', 'live'); // Live streaming routes
 
 // Import middleware
 const { authenticateToken, optionalAuth } = require('./middleware/auth.js');
@@ -227,6 +228,18 @@ app.get('/', (req, res) => {
         createStory: 'POST /api/stories',
         getStory: 'GET /api/stories/:id',
         deleteStory: 'DELETE /api/stories/:id'
+      },
+      live: {
+        startStream: 'POST /api/live/start',
+        getActiveStreams: 'GET /api/live/active',
+        getStream: 'GET /api/live/:streamId',
+        joinStream: 'POST /api/live/:streamId/join',
+        leaveStream: 'POST /api/live/:streamId/leave',
+        likeStream: 'POST /api/live/:streamId/like',
+        commentOnStream: 'POST /api/live/:streamId/comment',
+        endStream: 'POST /api/live/:streamId/end',
+        getUserStreams: 'GET /api/live/user/:userId/streams',
+        getMyActiveStream: 'GET /api/live/my/active'
       }
     },
     timestamp: new Date().toISOString()
@@ -255,6 +268,7 @@ setupRoute('/api/posts', postRoutes, 'post');
 setupRoute('/api/reels', reelRoutes, 'reel');
 setupRoute('/api/stories', storyRoutes, 'story');
 setupRoute('/api/settings', settingsRoutes, 'settings'); // New settings routes
+setupRoute('/api/live', liveRoutes, 'live'); // Live streaming routes
 
 console.log('All routes configured successfully');
 

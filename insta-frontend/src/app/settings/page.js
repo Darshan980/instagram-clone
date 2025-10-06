@@ -6,8 +6,10 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000/
 class SettingsAPI {
   constructor() {
     this.token = null;
-    this.baseURL = `${API_BASE_URL}/users`;
-    this.authURL = `${API_BASE_URL}/auth`;
+    this.baseURL = `${API_BASE_URL}/settings`;
+    this.authURL = `${API_BASE_URL}/settings/auth`;
+    this.userURL = `${API_BASE_URL}/users`;
+    this.authMeURL = `${API_BASE_URL}/auth`;
   }
 
   setToken(token) {
@@ -45,7 +47,7 @@ class SettingsAPI {
 
   async getProfile() {
     try {
-      const response = await fetch(`${this.authURL}/me`, {
+      const response = await fetch(`${this.authMeURL}/me`, {
         headers: this.getAuthHeaders()
       });
       if (response.ok) return await response.json();
@@ -53,7 +55,7 @@ class SettingsAPI {
       if (this.token) {
         const payload = JSON.parse(atob(this.token.split('.')[1]));
         const userId = payload._id || payload.id || payload.userId;
-        if (userId) return await this.makeRequest(`${this.baseURL}/${userId}`, { method: 'GET' });
+        if (userId) return await this.makeRequest(`${this.userURL}/${userId}`, { method: 'GET' });
       }
       throw new Error('Could not load profile');
     } catch (error) {
@@ -68,7 +70,7 @@ class SettingsAPI {
         headers: this.getMultipartHeaders(),
         body: formData
       };
-      const response = await fetch(`${this.baseURL}/profile`, config);
+      const response = await fetch(`${this.userURL}/profile`, config);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || `HTTP ${response.status}`);
@@ -103,14 +105,17 @@ class SettingsAPI {
   }
 
   async changePassword(currentPassword, newPassword) {
-    return await this.makeRequest(`${this.authURL}/change-password`, {
+    return await this.makeRequest(`${this.authURL}/password`, {
       method: 'PUT',
       body: JSON.stringify({ currentPassword, newPassword, confirmNewPassword: newPassword })
     });
   }
 
-  async deactivateAccount() {
-    return await this.makeRequest(`${this.baseURL}/deactivate`, { method: 'POST' });
+  async deactivateAccount(password) {
+    return await this.makeRequest(`${this.authURL}/deactivate`, { 
+      method: 'POST',
+      body: JSON.stringify({ password })
+    });
   }
 }
 
@@ -197,7 +202,7 @@ export default function SettingsPage() {
       const response = await settingsAPI.getProfile();
       
       if (response.success || response.user) {
-        const userData = response.user || response.data?.user || response.data;
+        const userData = response.user || response.data?.user || response.data || response;
         
         if (!userData) throw new Error('No user data in response');
         
@@ -383,9 +388,10 @@ export default function SettingsPage() {
     setLoading(true);
     try {
       const response = await settingsAPI.updatePrivacy(privacyForm);
-      if (response.success && response.user) {
-        setUser(response.user);
+      if (response.success) {
         showMessage('Privacy settings updated!', true);
+        // Reload user data to get updated settings
+        await loadUserData();
       } else {
         throw new Error(response.error || 'Update failed');
       }
@@ -401,9 +407,10 @@ export default function SettingsPage() {
     setLoading(true);
     try {
       const response = await settingsAPI.updateNotifications(notificationForm);
-      if (response.success && response.user) {
-        setUser(response.user);
+      if (response.success) {
         showMessage('Notification settings updated!', true);
+        // Reload user data to get updated settings
+        await loadUserData();
       } else {
         throw new Error(response.error || 'Update failed');
       }
@@ -449,6 +456,13 @@ export default function SettingsPage() {
   };
 
   const handleDeactivate = async () => {
+    const password = prompt('Please enter your password to confirm account deactivation:');
+    
+    if (!password) {
+      showMessage('Password is required to deactivate account');
+      return;
+    }
+    
     const confirmed = confirm(
       'Are you sure you want to deactivate your account? You can reactivate it by logging in again.'
     );
@@ -457,7 +471,7 @@ export default function SettingsPage() {
     
     setLoading(true);
     try {
-      const response = await settingsAPI.deactivateAccount();
+      const response = await settingsAPI.deactivateAccount(password);
       
       if (response.success) {
         clearAllTokens();
