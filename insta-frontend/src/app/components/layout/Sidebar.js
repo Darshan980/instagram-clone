@@ -9,8 +9,8 @@ export default function Sidebar({ user, onLogout, onCreateClick, showCreateActiv
 
   return (
     <>
-      {/* Desktop/Tablet Sidebar */}
-      <aside className={styles.sidebar}>
+      {/* Desktop/Tablet Sidebar - Hidden on mobile */}
+      <aside className={`${styles.sidebar} ${styles.desktopSidebar}`}>
         <div className={styles.sidebarContent}>
           <h1 className={styles.logo}>Instagram</h1>
           
@@ -31,8 +31,12 @@ export default function Sidebar({ user, onLogout, onCreateClick, showCreateActiv
               <span className={styles.navIcon}>🎬</span>
               <span className={styles.navText}>Reels</span>
             </Link>
+ .            <Link href="/live" className={styles.navItem}>
+              <span className={styles.navIcon}>🔴</span>
+              <span className={styles.navText}>Live</span>
+            </Link>
             <Link href="/messages" className={styles.navItem}>
-              <span className={styles.navIcon}>✈️</span>
+              <span className={styles.navIcon}>✈���</span>
               <span className={styles.navText}>Messages</span>
             </Link>
             <Link href="/notifications" className={styles.navItem}>
@@ -77,6 +81,9 @@ export default function Sidebar({ user, onLogout, onCreateClick, showCreateActiv
             >
               <span className={styles.navIcon}>➕</span>
             </button>
+            <Link href="/live" className={styles.navItem}>
+              <span className={styles.navIcon}>🔴</span>
+            </Link>
             <Link href="/reels" className={styles.navItem}>
               <span className={styles.navIcon}>🎬</span>
             </Link>

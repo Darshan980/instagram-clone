@@ -26,6 +26,16 @@
   overflow-y: auto;
 }
 
+/* Desktop Sidebar - visible by default */
+.desktopSidebar {
+  display: block;
+}
+
+/* Mobile Nav - hidden by default */
+.mobileNav {
+  display: none !important;
+}
+
 .sidebarContent {
   padding: 8px 0;
   height: 100%;
@@ -1234,30 +1244,30 @@
 }
 
 @media (max-width: 768px) {
-  .sidebar {
+  .desktopSidebar {
     width: 72px;
   }
   
-  .navText {
+  .desktopSidebar .navText {
     display: none;
   }
   
-  .logo {
+  .desktopSidebar .logo {
     font-size: 0;
     padding: 25px 12px 16px;
   }
   
-  .logo::after {
+  .desktopSidebar .logo::after {
     content: "📷";
     font-size: 24px;
   }
   
-  .navItem {
+  .desktopSidebar .navItem {
     padding: 12px;
     justify-content: center;
   }
   
-  .navIcon {
+  .desktopSidebar .navIcon {
     margin-right: 0;
   }
   
@@ -1277,17 +1287,25 @@
   .createSidebar {
     left: 72px;
   }
+  
+  /* Hide right sidebar on tablet */
+  .rightSidebar,
+  .currentUserInfo,
+  .followSuggestionsSection,
+  .sidebarFooter {
+    display: none !important;
+  }
 }
 
 @media (max-width: 480px) {
-  /* Hide desktop sidebar */
-  .sidebar {
-    display: none;
+  /* Hide desktop sidebar completely on mobile */
+  .desktopSidebar {
+    display: none !important;
   }
   
   /* Show mobile bottom navigation */
-  .sidebar.mobileNav {
-    display: flex;
+  .mobileNav {
+    display: flex !important;
     position: fixed;
     bottom: 0;
     left: 0;
@@ -1302,7 +1320,7 @@
     overflow-y: visible;
   }
   
-  .sidebar.mobileNav .sidebarContent {
+  .mobileNav .sidebarContent {
     flex-direction: row;
     padding: 0;
     width: 100%;
@@ -1310,11 +1328,11 @@
     justify-content: space-around;
   }
   
-  .sidebar.mobileNav .logo {
+  .mobileNav .logo {
     display: none;
   }
   
-  .sidebar.mobileNav .nav {
+  .mobileNav .nav {
     display: flex;
     flex-direction: row;
     padding: 0;
@@ -1323,7 +1341,7 @@
     align-items: center;
   }
   
-  .sidebar.mobileNav .navItem {
+  .mobileNav .navItem {
     padding: 8px;
     flex: 1;
     display: flex;
@@ -1331,21 +1349,16 @@
     align-items: center;
   }
   
-  .sidebar.mobileNav .navIcon {
+  .mobileNav .navIcon {
     margin-right: 0;
     font-size: 26px;
   }
   
-  .sidebar.mobileNav .navText {
+  .mobileNav .navText {
     display: none;
   }
   
-  .sidebar.mobileNav .sidebarBottom {
-    display: none;
-  }
-  
-  /* Hide Messages from bottom nav, show in corner */
-  .sidebar.mobileNav .navItem.hideOnMobile {
+  .mobileNav .sidebarBottom {
     display: none;
   }
   
@@ -1353,6 +1366,7 @@
   .main,
   .dashboardMain {
     margin-left: 0;
+    margin-right: 0 !important;
     margin-bottom: 60px; /* Space for bottom nav */
     padding-bottom: 20px;
   }
@@ -1381,7 +1395,7 @@
   
   /* Floating Messages Button - Show on mobile */
   .floatingMessagesButton {
-    display: flex;
+    display: flex !important;
     position: fixed;
     bottom: 80px;
     right: 20px;
