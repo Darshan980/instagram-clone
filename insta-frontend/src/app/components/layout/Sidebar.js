@@ -31,12 +31,8 @@ export default function Sidebar({ user, onLogout, onCreateClick, showCreateActiv
               <span className={styles.navIcon}>🎬</span>
               <span className={styles.navText}>Reels</span>
             </Link>
- .            <Link href="/live" className={styles.navItem}>
-              <span className={styles.navIcon}>🔴</span>
-              <span className={styles.navText}>Live</span>
-            </Link>
             <Link href="/messages" className={styles.navItem}>
-              <span className={styles.navIcon}>💬</span>
+              <span className={styles.navIcon}>✈️</span>
               <span className={styles.navText}>Messages</span>
             </Link>
             <Link href="/notifications" className={styles.navItem}>
@@ -81,9 +77,6 @@ export default function Sidebar({ user, onLogout, onCreateClick, showCreateActiv
             >
               <span className={styles.navIcon}>➕</span>
             </button>
-            <Link href="/live" className={styles.navItem}>
-              <span className={styles.navIcon}>🔴</span>
-            </Link>
             <Link href="/reels" className={styles.navItem}>
               <span className={styles.navIcon}>🎬</span>
             </Link>

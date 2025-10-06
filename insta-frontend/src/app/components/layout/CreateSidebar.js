@@ -6,7 +6,7 @@ export default function CreateSidebar({ onClose, onOptionClick }) {
     { path: '/create', icon: '📝', title: 'Post', desc: 'Share a photo or video' },
     { path: '/create-reel', icon: '🎥', title: 'Reel', desc: 'Create a short video' },
     { path: '/create-story', icon: '📸', title: 'Story', desc: 'Share a moment' },
-    { path: '/go-live', icon: '📺', title: 'Live', desc: 'Go live with your followers' },
+    { path: '/live', icon: '🔴', title: 'Live', desc: 'Go live with your followers' },
   ];
 
   return (
