@@ -317,7 +317,7 @@ export default function LiveStreamPage() {
                   LIVE
                 </div>
                 <p className={styles.placeholderText}>
-                  📹 Watching {stream.user.username}'s live stream
+                  📹 Watching {stream.user.username}&apos;s live stream
                 </p>
                 <p className={styles.placeholderSubtext}>
                   (Viewer mode - Camera streaming from broadcaster)
